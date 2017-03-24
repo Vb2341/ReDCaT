@@ -27,7 +27,7 @@ def rename_files(list_of_files):
                 print('VERIFICATION KEYWORDS NOT FOUND!!')
                 break
 
-            if verified != 'PASS' and certified != 'PASS':
+            if verified != 'PASSED' and certified != 'PASSED':
                 print('\n FILE NOT COMPLIANT \n \t {}'.format(item))
                 break
             else:
