@@ -33,7 +33,9 @@ def rename_files(list_of_files):
             else:
                 print('\n {} IS COMPLIANT'.format(item))
 
-    os.system('crds uniqname -s -a -r --files *.fits > delivery.log  2>&1')
+    os.system('python -m crds.uniqname -s -a -r --files *.fits > delivery.log  2>&1')
+
+    print('DONE. FILES RENAMED')
 
 #-------------------------------------------------------------------------------
 if __name__ == "__main__":
