@@ -2,8 +2,10 @@ import argparse
 import glob
 import os
 import subprocess
+import warnings
 
 from astropy.io import fits
+from astropy.io.fits.verify import VerifyError
 from crds import jwst
 
 def parse_args():
@@ -62,20 +64,38 @@ def print_extra_help():
     print 'If you already use these packages and do not wish to alter installed packages, use command \'conda create -n <new_environment_name_here>\''
 
 def verify_files(files):
+    '''Check files conform to fits standard and update verification keyword'''
+    print '----------------------------------------------------------------'
+    print '--------------------------VERIFYING-----------------------------'
+    print '----------------------------------------------------------------'
     for f in files:
         print 'Verifying {}'.format(f)
-        hdu = fits.open(f)
-        hdu.verify('warn')
-        hdu.close(output_verify="exception")
-        fits.setval(f, 'VERIFIED', ext=0, value='PASSED')
+        with warnings.catch_warnings(record=True) as w: # Workaround for astropy verify issues
+            warnings.simplefilter("always") # Catch all warnings
+            hdu = fits.open(f, mode='update') # Catches the 'fixable violations'
+            hdu.verify('warn') # Catches the unfixable ones
+            if len(w) == 0: # Check number of warnings, if =0 then file is good
+                print f, 'PASSED VERIFICATION'
+                hdu[0].header['VERIFIED'] = 'PASSED'
+            else:
+                print f, 'FAILED VERIFICATION'
+                hdu[0].header['VERIFIED'] = 'FAILED'
+                for warn in w:
+                    print warn.message
+            hdu.close(output_verify='ignore')
+        print '----------------------------------------------------------------'
 
 def check_certify_results(files):
-    bad_files = [x.strip() for x in open('certify_errored_files.txt').readlines()]
+    '''Check files passed certify and update certification keyword'''
+    # Get list of files that failed certify (parses output file)
+    bad_files = [os.path.split(x.strip())[-1] for x in open('certify_errored_files.txt').readlines()]
     for f in files:
+        hdu = fits.open(f, mode='update')
         if f in bad_files:
-            fits.setval(f, 'CERTIFYD', ext=0, value='FAILED')
+            hdu[0].header['CERTIFYD'] = 'FAILED'
         else:
-            fits.setval(f, 'CERTIFYD', ext=0, value='PASSED')
+            hdu[0].header['CERTIFYD'] = 'PASSED'
+        hdu.close(output_verify='ignore')
 
 if __name__ == '__main__':
     options = parse_args()
@@ -84,11 +104,12 @@ if __name__ == '__main__':
     assert len(files) != 0, 'No files matched'
     assert options.o == 'hst' or options.o == 'jwst', 'Invalid observatory, specify either \'hst\' or \'jwst\''
     context = get_context(options.o, options.c)
-    print files
+    for f in files: print f
     verify_files(files)
-    print '-------------------------------'
+    print '----------------------------------------------------------------'
+    print '--------------------------CERTIFYING----------------------------'
+    print '----------------------------------------------------------------'
     command = ' '.join(['python', '-m', 'crds.certify','--unique-errors-file', 'certify_errored_files.txt', '--comparison-context={}'.format(context), options.f, '>', 'certify_results.txt', '2>&1'])
-    print command
     os.system(command)
     check_certify_results(files)
     # python -m crds.certify --comparison-context=<operational contextI> <files or path to files if they're not in the current directory>
