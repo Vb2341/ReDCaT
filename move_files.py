@@ -64,8 +64,4 @@ def move_results(cwd, obs_instruments):
 
     print('\n\tFILE MOVES COMPLETED')
 
-    # Move up one level and delete the delivery directory
-    os.chdir('..')
-    os.rmdir(cwd)
-
 #-------------------------------------------------------------------------------
