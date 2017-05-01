@@ -5,7 +5,7 @@ import shutil   # shutil.copy()
 
 # Constants
 instruments= {'hst': ['STIS', 'COS', 'ACS', 'WFC3', 'NICMOS', 'WFPC2']
-              'jwst': ['MIRI', 'NIRCAM', 'NIRISS', 'NIRSPEC']}
+              'jwst': ['FGS', 'MIRI', 'NIRCAM', 'NIRISS', 'NIRSPEC']}
 
 #-------------------------------------------------------------------------------
 def parse_directory_name(name):
@@ -13,7 +13,7 @@ def parse_directory_name(name):
         and moves it to the appropriate directory in /ifs/redcat...
     """
     pieces= name.split('_')
-    instrument, year, month, day= pieces[0].upper(), pieces[1], pieces[2]
+    instrument, year, month, day= pieces[0].upper(), pieces[1], pieces[2], pieces[3]
 
     if instrument not in instruments['hst'] and instrument not in instruments['jwst']:
         raise NameError('Directory name does not comply with INSTR_YYYY_MM_DD or invalid INSTRUMENT')
@@ -67,6 +67,7 @@ def move_results(dir, obs_instruments):
 #-------------------------------------------------------------------------------
 def arrrg_pirate():
   import argparse
+  # YAAARRRRRRRRRRRR
   
   parser= argparse.ArgumentParser(
       description= 'Moves the results from the delivery directory to /ifs..')
