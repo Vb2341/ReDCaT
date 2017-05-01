@@ -4,7 +4,7 @@ import shutil   # shutil.copy()
 
 
 # Constants
-instruments= {'hst': ['STIS', 'COS', 'ACS', 'WFC3', 'NICMOS', 'WFPC2']
+instruments= {'hst': ['STIS', 'COS', 'ACS', 'WFC3', 'NICMOS', 'WFPC2'],
               'jwst': ['FGS', 'MIRI', 'NIRCAM', 'NIRISS', 'NIRSPEC']}
 
 #-------------------------------------------------------------------------------
@@ -14,6 +14,7 @@ def parse_directory_name(name):
     """
     pieces= name.split('_')
     instrument, year, month, day= pieces[0].upper(), pieces[1], pieces[2], pieces[3]
+    print(pieces)
 
     if instrument not in instruments['hst'] and instrument not in instruments['jwst']:
         raise NameError('Directory name does not comply with INSTR_YYYY_MM_DD or invalid INSTRUMENT')
@@ -36,7 +37,7 @@ def move_results(dir, obs_instruments):
 
     # Grab the delivery info
     delivery= dir.split('/')[-1]
-    instrument, year, month, day= parse_directory_name(dir)
+    instrument, year, month, day= parse_directory_name(delivery)
     print('-'*50)
     print('\n\t {} DELIVERY\n\t{} {} {}'.format(instrument, year, month, day))
     print('-'*50)
