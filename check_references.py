@@ -93,13 +93,17 @@ def check_certify_results(files):
         hdu = fits.open(f, mode='update')
         if f in bad_files:
             hdu[0].header['CERTIFYD'] = 'FAILED'
+            print f, 'FAILED CERTIFICATION'
         else:
             hdu[0].header['CERTIFYD'] = 'PASSED'
+            print f, 'PASSED CERTIFICATION'
         hdu.close(output_verify='ignore')
+        print '----------------------------------------------------------------'
 
 if __name__ == '__main__':
     options = parse_args()
     files = glob.glob(options.f)
+    abs_paths = [os.path.abspath(f) for f in files]
     # Check if there are files?  Call to certify will handle this
     assert len(files) != 0, 'No files matched'
     assert options.o == 'hst' or options.o == 'jwst', 'Invalid observatory, specify either \'hst\' or \'jwst\''
@@ -109,7 +113,7 @@ if __name__ == '__main__':
     print '----------------------------------------------------------------'
     print '--------------------------CERTIFYING----------------------------'
     print '----------------------------------------------------------------'
-    command = ' '.join(['python', '-m', 'crds.certify','--unique-errors-file', 'certify_errored_files.txt', '--comparison-context={}'.format(context), options.f, '>', 'certify_results.txt', '2>&1'])
+    command = ' '.join(['python', '-m', 'crds.certify','--unique-errors-file', 'certify_errored_files.txt', '--comparison-context={}'.format(context), ' '.join(abs_paths), '>', 'certify_results.txt', '2>&1'])
     os.system(command)
     check_certify_results(files)
     # python -m crds.certify --comparison-context=<operational contextI> <files or path to files if they're not in the current directory>
