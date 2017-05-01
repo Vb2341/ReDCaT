@@ -39,7 +39,7 @@ def move_results(dir, obs_instruments):
     delivery= dir.split('/')[-1]
     instrument, year, month, day= parse_directory_name(delivery)
     print('-'*50)
-    print('\n\t {} DELIVERY\n\t{} {} {}'.format(instrument, year, month, day))
+    print('\n\t{} DELIVERY\n\t{} {} {}'.format(instrument, year, month, day))
     print('-'*50)
     date_dir= year + '_' + month + '_' + day
 
@@ -63,7 +63,7 @@ def move_results(dir, obs_instruments):
         print('\nMOVING {} TO {}\n'.format(item, complete_destination))
         shutil.copy(item, complete_destination)
 
-    print('\n\tFILE MOVES COMPLETED')
+    print('\n\tFILE MOVES COMPLETED\n')
 
 #-------------------------------------------------------------------------------
 def arrrg_pirate():
