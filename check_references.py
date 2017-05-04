@@ -53,37 +53,37 @@ def get_context(observatory, context):
 
 
 def print_extra_help():
-    print 'If experiencing errors, ensure you are using astroconda with the following packages are installed:'
+    print('If experiencing errors, ensure you are using astroconda with the following packages are installed:')
     # Try importing these packages to see if they work?
-    print '\tjwst'
-    print '\tasdf'
-    print '\tasdf-standard'
-    print '\tgwcs\n\n'
-    print 'To ensure packages are installed use command \'conda list\'.\n\n'
-    print 'If not use command \'conda install <package_name>\''
-    print 'If you already use these packages and do not wish to alter installed packages, use command \'conda create -n <new_environment_name_here>\''
+    print('\tjwst')
+    print('\tasdf')
+    print('\tasdf-standard')
+    print('\tgwcs\n\n')
+    print('To ensure packages are installed use command \'conda list\'.\n\n')
+    print('If not use command \'conda install <package_name>\'')
+    print('If you already use these packages and do not wish to alter installed packages, use command \'conda create -n <new_environment_name_here>\'')
 
 def verify_files(files):
     '''Check files conform to fits standard and update verification keyword'''
-    print '----------------------------------------------------------------'
-    print '--------------------------VERIFYING-----------------------------'
-    print '----------------------------------------------------------------'
+    print('----------------------------------------------------------------')
+    print('--------------------------VERIFYING-----------------------------')
+    print('----------------------------------------------------------------')
     for f in files:
-        print 'Verifying {}'.format(f)
+        print('Verifying {}'.format(f))
         with warnings.catch_warnings(record=True) as w: # Workaround for astropy verify issues
             warnings.simplefilter("always") # Catch all warnings
             hdu = fits.open(f, mode='update') # Catches the 'fixable violations'
             hdu.verify('warn') # Catches the unfixable ones
             if len(w) == 0: # Check number of warnings, if =0 then file is good
-                print f, 'PASSED VERIFICATION'
+                print(f, 'PASSED VERIFICATION')
                 hdu[0].header['VERIFIED'] = 'PASSED'
             else:
-                print f, 'FAILED VERIFICATION'
+                print(f, 'FAILED VERIFICATION')
                 hdu[0].header['VERIFIED'] = 'FAILED'
                 for warn in w:
-                    print warn.message
+                    print(warn.message)
             hdu.close(output_verify='ignore')
-        print '----------------------------------------------------------------'
+        print('----------------------------------------------------------------')
 
 def check_certify_results(files):
     '''Check files passed certify and update certification keyword'''
@@ -93,12 +93,12 @@ def check_certify_results(files):
         hdu = fits.open(f, mode='update')
         if f in bad_files:
             hdu[0].header['CERTIFYD'] = 'FAILED'
-            print f, 'FAILED CERTIFICATION'
+            print(f, 'FAILED CERTIFICATION')
         else:
             hdu[0].header['CERTIFYD'] = 'PASSED'
-            print f, 'PASSED CERTIFICATION'
+            print(f, 'PASSED CERTIFICATION')
         hdu.close(output_verify='ignore')
-        print '----------------------------------------------------------------'
+        print('----------------------------------------------------------------')
 
 if __name__ == '__main__':
     options = parse_args()
@@ -108,11 +108,11 @@ if __name__ == '__main__':
     assert len(files) != 0, 'No files matched'
     assert options.o == 'hst' or options.o == 'jwst', 'Invalid observatory, specify either \'hst\' or \'jwst\''
     context = get_context(options.o, options.c)
-    for f in files: print f
+    for f in files: print(f)
     verify_files(files)
-    print '----------------------------------------------------------------'
-    print '--------------------------CERTIFYING----------------------------'
-    print '----------------------------------------------------------------'
+    print('----------------------------------------------------------------')
+    print('--------------------------CERTIFYING----------------------------')
+    print('----------------------------------------------------------------')
     command = ' '.join(['crds', 'certify','--unique-errors-file', 'certify_errored_files.txt', '--comparison-context={}'.format(context), ' '.join(abs_paths), '>', 'certify_results.txt', '2>&1'])
     os.system(command)
     check_certify_results(files)
