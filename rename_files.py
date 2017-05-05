@@ -33,7 +33,7 @@ def rename_files(list_of_files):
             else:
                 print('\n {} IS COMPLIANT'.format(item))
 
-    os.system('crds uniqname -s -a -r --files *.fits > delivery.log  2>&1')
+    os.system('crds uniqname -s -a -r --files *.fits > rename.log  2>&1')
 
     print('DONE. FILES RENAMED')
 
