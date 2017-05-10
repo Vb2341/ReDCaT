@@ -113,7 +113,7 @@ if __name__ == '__main__':
     print('----------------------------------------------------------------')
     print('--------------------------CERTIFYING----------------------------')
     print('----------------------------------------------------------------')
-    command = ' '.join(['crds', 'certify','--unique-errors-file', 'certify_errored_files.txt', '--comparison-context={}'.format(context), ' '.join(abs_paths), '>', 'certify_results.txt', '2>&1'])
+    command = ' '.join(['crds', 'certify','--unique-errors-file', 'certify_errored_files.txt', '--comparison-context={}'.format(context), ' '.join(abs_paths), '|', 'tee', 'certify_results.txt'])
     os.system(command)
     check_certify_results(files)
     # python -m crds.certify --comparison-context=<operational contextI> <files or path to files if they're not in the current directory>
