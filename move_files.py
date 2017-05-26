@@ -1,6 +1,6 @@
-import os       # os.mkdir(); os.getcwd()
+import os
 import glob
-import shutil   # shutil.copy()
+import shutil
 
 
 # Constants
@@ -104,25 +104,6 @@ def move_hst_references(instrument, directory):
         shutil.copy(ref, central_store)
         
 #-------------------------------------------------------------------------------
-def arrrg_pirate():
-  import argparse
-  # YAAARRRRRRRRRRRR
-
-  parser= argparse.ArgumentParser(
-      description= 'Moves the results from the delivery directory to /ifs..')
-
-  parser.add_argument('-dr',
-                      '--delivery_directory',
-                      default= os.getcwd(),
-                      action= 'store',
-                      help= 'Delivery directory of the form INSTRUMENT_YYYY_MM_DD')
-
-  return parser.parse_args()
-
-#-------------------------------------------------------------------------------
-
 if __name__ == '__main__':
-
-    args= arrrg_pirate()
-
-    move_results(args.delivery_directory, instruments)
+    deliver_directory = os.getcwd()
+    move_results(delivery_directory, instruments)
