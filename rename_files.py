@@ -1,6 +1,8 @@
 from astropy.io import fits
 import glob
 import os
+import subprocess
+
 
 #-------------------------------------------------------------------------------
 def rename_files(list_of_files):
@@ -33,7 +35,12 @@ def rename_files(list_of_files):
             else:
                 print('\n {} IS COMPLIANT'.format(item))
 
-    os.system('crds uniqname -s -a -r --files *.fits | tee rename.log')
+    uniqname= 'crds uniqname -s -a -r --files *.fits'
+    output= subprocess.check_output(command)
+    print(output)
+
+    with open('rename.log', mode= 'w+') as log:
+        print(output, file= log)
 
     print('DONE. FILES RENAMED')
 

@@ -3,6 +3,7 @@ import glob
 import os
 import subprocess
 import warnings
+import shlex
 
 from astropy.io import fits
 from astropy.io.fits.verify import VerifyError
@@ -113,7 +114,14 @@ if __name__ == '__main__':
     print('----------------------------------------------------------------')
     print('--------------------------CERTIFYING----------------------------')
     print('----------------------------------------------------------------')
-    command = ' '.join(['crds', 'certify','--unique-errors-file', 'certify_errored_files.txt', '--comparison-context={}'.format(context), ' '.join(abs_paths), '|', 'tee', 'certify_results.txt'])
-    os.system(command)
+    #command = ' '.join(['crds', 'certify','--unique-errors-file', 'certify_errored_files.txt', '--comparison-context={}'.format(context), ' '.join(abs_paths), '|', 'tee', 'certify_results.txt'])
+    certify_command = ("crds certify --unique-errors-file"
+                       " certify_errored_files.txt --comparison-context={}").format(context)
+    output = subprocess(shlex.split(command))
+    print(output)
+
+    with open('certify_results.txt', mode= 'W+') as cert:
+        print(output, file= cert)
+        
     check_certify_results(files)
     # python -m crds.certify --comparison-context=<operational contextI> <files or path to files if they're not in the current directory>

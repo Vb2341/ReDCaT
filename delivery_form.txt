@@ -1,0 +1,42 @@
+1. Name of deliverer:
+a. (other e-mail addresses)
+
+2. Date of Delivery:
+
+3. Instrument:
+
+4. Type of file(s) (example: Bias, Dark, etc.):
+
+5. Has HISTORY section in the primary header been updated to describe in detail the reason for delivery and how the file(s) was(were) created? (yes/no):
+
+6. USEAFTER, PEDIGREE, DESCRIP, and COMMENT, for HST files, have been checked? Special keywords for JWST too (see Header Keywords)?:
+a. Was the DESCRIP keyword updated with a summary of why the file was updated or created? (yes/no):
+b. If the reference files are replacing previous versions, do the new USEAFTER dates exactly match the old ones?
+
+7. Verification for compliance complete? (fits compliant, info_ref_files.py, certify, etc.):
+
+8. Should these files be ingested in the DMS, Archive and CRDS databases?(If not clear or needs to go to CRDS-TEST first, indicate here):
+a. If files are pysynphot files, should they be delivered to ETC?
+b. Are these JWST ETC files?
+
+9. Files run through CALXXX in the latest version used by the DMS pipeline or PYSYNPHOT and ETC? (yes/no and list the version used):
+
+10. Does it replace an old reference file? (yes/no):
+a. If yes, which one?
+b. If the file being replaced is bad, and should not be used with any data, please indicate this here:
+
+11. Is this a new TYPE of reference file? (yes/no):
+a. if yes, please include the JIRA issue number here
+
+12. What is the level of change of the file? (e.g. compared to old file it could be: SEVERE, MODERATE, TRIVIAL - initial delivery of a reference file type is always SEVERE):
+a. If files are tables, please indicate exactly which rows have changed (for HST tables, please include the output from compare_table.py):
+
+13. Please indicate which modes (e.g. all the STIS, FUVMAMA, E140L modes) are affected by the changes in the file:
+
+14. Description of how the files were “tested" for correctness:
+
+15. Additional Considerations:
+
+16. Disk location and name of files (NOTE: Location should be: /grp/redcat/<instrument>_yyyy_mm_dd/):Reason for delivery: testing testing
+
+17. Reason for delivery:
