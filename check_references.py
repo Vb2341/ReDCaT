@@ -117,7 +117,7 @@ if __name__ == '__main__':
     #command = ' '.join(['crds', 'certify','--unique-errors-file', 'certify_errored_files.txt', '--comparison-context={}'.format(context), ' '.join(abs_paths), '|', 'tee', 'certify_results.txt'])
     certify_command = ("crds certify --unique-errors-file"
                        " certify_errored_files.txt --comparison-context={}").format(context)
-    output = subprocess(shlex.split(certify_command))
+    output = subprocess.call(shlex.split(certify_command))
     print(output)
 
     with open('certify_results.txt', mode= 'W+') as cert:
