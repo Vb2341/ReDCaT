@@ -115,13 +115,15 @@ if __name__ == '__main__':
     print('--------------------------CERTIFYING----------------------------')
     print('----------------------------------------------------------------')
     #command = ' '.join(['crds', 'certify','--unique-errors-file', 'certify_errored_files.txt', '--comparison-context={}'.format(context), ' '.join(abs_paths), '|', 'tee', 'certify_results.txt'])
-    certify_command = ("crds certify --unique-errors-file"
-                       " certify_errored_files.txt --comparison-context={}").format(context)
-    output = subprocess.call(shlex.split(certify_command))
+    certify_command = "crds certify --unique-errors-file \
+                        certify_errored_files.txt --comparison-context={} \
+                        {}".format(context, ' '.join(abs_paths))
+    shell_cmd = shlex.split(certify_command)
+    output = subprocess.check_output(shell_cmd)
     print(output)
 
     with open('certify_results.txt', mode= 'w+') as cert:
         print(output, file= cert)
-        
+
     check_certify_results(files)
     # python -m crds.certify --comparison-context=<operational contextI> <files or path to files if they're not in the current directory>
