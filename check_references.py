@@ -120,7 +120,7 @@ if __name__ == '__main__':
     output = subprocess.call(shlex.split(certify_command))
     print(output)
 
-    with open('certify_results.txt', mode= 'W+') as cert:
+    with open('certify_results.txt', mode= 'w+') as cert:
         print(output, file= cert)
         
     check_certify_results(files)
