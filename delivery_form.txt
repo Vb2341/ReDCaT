@@ -25,7 +25,7 @@ b. Are these JWST ETC files?
 a. If yes, which one?
 b. If the file being replaced is bad, and should not be used with any data, please indicate this here:
 
-11. Is this a new TYPE of reference file? (yes/no):
+11. Was a JIRA issue filed in regard to the references being delivered and/or their rmap? (yes/no):
 a. if yes, please include the JIRA issue number here
 
 12. What is the level of change of the file? (e.g. compared to old file it could be: SEVERE, MODERATE, TRIVIAL - initial delivery of a reference file type is always SEVERE):
@@ -37,6 +37,6 @@ a. If files are tables, please indicate exactly which rows have changed (for HST
 
 15. Additional Considerations:
 
-16. Disk location and name of files (NOTE: Location should be: /grp/redcat/<instrument>_yyyy_mm_dd/):Reason for delivery: testing testing
+16. Disk location and name of files (NOTE: Location should be: /grp/redcat/staging/[test/ops]/<instrument>_yyyy_mm_dd/):
 
 17. Reason for delivery:
