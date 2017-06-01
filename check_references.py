@@ -132,6 +132,6 @@ if __name__ == '__main__':
     except subprocess.CalledProcessError as err:
         print(err.returncode, err.output)
         sys.exit()
-
+        
     check_certify_results(files)
     # python -m crds.certify --comparison-context=<operational contextI> <files or path to files if they're not in the current directory>
