@@ -94,12 +94,17 @@ def execute_delivery(delivery_directory, delivery_type):
     print(deliver_cmd)
     
     # run crds submit
-    output = subprocess.check_output(deliver_cmd)
-    print(output)     # so the user can see the output
+    try:
+        output = subprocess.check_output(deliver_cmd)
+        print(output)     # so the user can see the output
 
-    # write the output to a delivery log
-    with open('delivery.log', mode= 'w+') as log:
-        print(output, file= log)
+        # write the output to a delivery log
+        with open('delivery.log', mode= 'w+') as log:
+            print(output, file= log)
+            
+    except subprocess.CalledProcessError as err:
+        print(err.returncode, err.output)
+        sys.exit()
     
     # Clean up the environment variables
     del os.environ['CRDS_PATH']

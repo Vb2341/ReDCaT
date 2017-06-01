@@ -4,6 +4,7 @@ import os
 import subprocess
 import warnings
 import shlex
+import sys
 
 from astropy.io import fits
 from astropy.io.fits.verify import VerifyError
@@ -103,7 +104,10 @@ def check_certify_results(files):
 
 if __name__ == '__main__':
     options = parse_args()
-    files = glob.glob(options.f)
+    #files = glob.glob(options.f)
+    files = glob.glob('*fits*') + glob.glob('*json*') + glob.glob('*asdf*')
+    input_files = ' '.join(files)
+    print(input_files)
     abs_paths = [os.path.abspath(f) for f in files]
     # Check if there are files?  Call to certify will handle this
     assert len(files) != 0, 'No files matched'
@@ -115,15 +119,19 @@ if __name__ == '__main__':
     print('--------------------------CERTIFYING----------------------------')
     print('----------------------------------------------------------------')
     #command = ' '.join(['crds', 'certify','--unique-errors-file', 'certify_errored_files.txt', '--comparison-context={}'.format(context), ' '.join(abs_paths), '|', 'tee', 'certify_results.txt'])
-    certify_command = "crds certify --unique-errors-file \
-                        certify_errored_files.txt --comparison-context={} \
-                        {}".format(context, ' '.join(abs_paths))
+    certify_command = ("crds certify --unique-errors-file"
+                       " certify_errored_files.txt --comparison-context={} {}").format(context, input_files)
+
     shell_cmd = shlex.split(certify_command)
-    output = subprocess.check_output(shell_cmd)
-    print(output)
 
-    with open('certify_results.txt', mode= 'w+') as cert:
-        print(output, file= cert)
-
+    try:
+        output = subprocess.check_output(shell_cmd)
+        print(output)
+        with open('certify_results.txt', mode= 'w+') as cert:
+            print(output, file= cert)
+    except subprocess.CalledProcessError as err:
+        print(err.returncode, err.output)
+        sys.exit()
+        
     check_certify_results(files)
     # python -m crds.certify --comparison-context=<operational contextI> <files or path to files if they're not in the current directory>
