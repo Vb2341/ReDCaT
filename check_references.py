@@ -107,12 +107,10 @@ if __name__ == '__main__':
 
     # Grab the files and make a string-list. Avoids issues becuase
     # doing it this way includes the paths of the files
-    # ** Not sure if certify actually works on json or asdf files**
-    files = glob.glob('*fits*') + glob.glob('*json*') + glob.glob('*asdf*')
+    files = glob.glob(options.f)
     input_files = ' '.join(files)
     print(input_files)
-    abs_paths = [os.path.abspath(f) for f in files]
-    # Check if there are files?  Call to certify will handle this
+        # Check if there are files?  Call to certify will handle this
     assert len(files) != 0, 'No files matched'
     assert options.o == 'hst' or options.o == 'jwst', 'Invalid observatory, specify either \'hst\' or \'jwst\''
     context = get_context(options.o, options.c)
