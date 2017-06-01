@@ -104,12 +104,17 @@ def execute_delivery(delivery_directory, delivery_type):
     deliver_cmd = shlex.split(deliver)
     print(deliver_cmd)
 
-    output = subprocess.check_output(deliver_cmd)
-    print(output)     # so the user can see the output
+    try:
+        output = subprocess.check_output(deliver_cmd)
+        print(output)     # so the user can see the output
 
-    # write the output to a delivery log
-    with open('delivery.log', mode= 'w+') as log:
-        print(output, file= log)
+        # write the output to a delivery log
+        with open('delivery.log', mode= 'w+') as log:
+            print(output, file= log)
+            
+    except subprocess.CalledProcessError as err:
+        print(err.returncode, err.output)
+        sys.exit()
 
     del os.environ['CRDS_PATH']
     del os.environ['CRDS_SERVER_URL']
