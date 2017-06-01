@@ -4,6 +4,7 @@ import os
 import subprocess
 import warnings
 import shlex
+import sys
 
 from astropy.io import fits
 from astropy.io.fits.verify import VerifyError
@@ -126,14 +127,11 @@ if __name__ == '__main__':
     try:
         output = subprocess.check_output(shell_cmd)
         print(output)
-
         with open('certify_results.txt', mode= 'w+') as cert:
             print(output, file= cert)
     except subprocess.CalledProcessError as err:
         print(err.returncode, err.output)
-
-        with open('certify_results.txt', mode= 'w+') as cert:
-            print('{}\n{}'.format(err.returncode, err.output), file= cert)
-
+        sys.exit()
+        
     check_certify_results(files)
     # python -m crds.certify --comparison-context=<operational contextI> <files or path to files if they're not in the current directory>
