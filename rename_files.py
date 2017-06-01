@@ -1,5 +1,6 @@
 from astropy.io import fits
 import glob
+import sys
 import subprocess
 
 
@@ -27,15 +28,20 @@ def rename_files(list_of_files):
                 break
             else:
                 print('\n {} IS COMPLIANT'.format(item))
-    
+
     # Run uniqname
     uniqname = 'crds uniqname -s -a -r --files *.fits'
-    output = subprocess.check_output(command)
-    print(output)
-    
+    try:
+        output = subprocess.check_output(command)
+        print(output)
+
     # Document rename results in a log file
     with open('rename.log', mode= 'w+') as log:
         print(output, file= log)
+
+    except subprocess.CalledProcessError as err:
+        print(err.returncode, err.output)
+        sys.exit()
 
     print('DONE. FILES RENAMED')
 
