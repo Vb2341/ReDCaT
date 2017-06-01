@@ -104,7 +104,10 @@ def check_certify_results(files):
 
 if __name__ == '__main__':
     options = parse_args()
-    #files = glob.glob(options.f)
+
+    # Grab the files and make a string-list. Avoids issues becuase
+    # doing it this way includes the paths of the files
+    # ** Not sure if certify actually works on json or asdf files**
     files = glob.glob('*fits*') + glob.glob('*json*') + glob.glob('*asdf*')
     input_files = ' '.join(files)
     print(input_files)
@@ -118,7 +121,7 @@ if __name__ == '__main__':
     print('----------------------------------------------------------------')
     print('--------------------------CERTIFYING----------------------------')
     print('----------------------------------------------------------------')
-    #command = ' '.join(['crds', 'certify','--unique-errors-file', 'certify_errored_files.txt', '--comparison-context={}'.format(context), ' '.join(abs_paths), '|', 'tee', 'certify_results.txt'])
+
     certify_command = ("crds certify --unique-errors-file"
                        " certify_errored_files.txt --comparison-context={} {}").format(context, input_files)
 
@@ -132,6 +135,5 @@ if __name__ == '__main__':
     except subprocess.CalledProcessError as err:
         print(err.returncode, err.output)
         sys.exit()
-        
+
     check_certify_results(files)
-    # python -m crds.certify --comparison-context=<operational contextI> <files or path to files if they're not in the current directory>
