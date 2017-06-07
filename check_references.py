@@ -118,19 +118,28 @@ if __name__ == '__main__':
     print('----------------------------------------------------------------')
     print('--------------------------CERTIFYING----------------------------')
     print('----------------------------------------------------------------')
-    command = ' '.join(['crds', 'certify','--unique-errors-file', 'certify_errored_files.txt', '--comparison-context={}'.format(context), ' '.join(abs_paths)])
-#    certify_command = ("crds certify --unique-errors-file"
-#                       " certify_errored_files.txt --comparison-context={} {}").format(context, input_files)
 
-    shell_cmd = shlex.split(command)
+    certify_command = ("crds certify --unique-errors-file "
+                    "certify_errored_files.txt --comparison-context={} {}").format(context, ' '.join(abs_paths))
 
-    try:
-        output = subprocess.check_output(shell_cmd)
-        print(output)
-        with open('certify_results.txt', mode= 'w+') as cert:
-            print(output, file= cert)
-    except subprocess.CalledProcessError as err:
-        print(err.returncode, err.output)
-        sys.exit()
+    shell_cmd = shlex.split(certify_command)
+    print(shell_cmd)
+    output = subprocess.Popen(shell_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    print('OUTPUT IS: ----------------------')
+    
+    derp = output.communicate()[1].decode('utf-8')
+    print(derp)
+    print(type(derp))
+    with open('certify_results.txt', mode= 'w+') as cert:
+        print(derp, file= cert)
+
+#    try: 
+#         output = subprocess.check_output(shell_cmd)
+#         print(output)
+#         with open('certify_results.txt', mode= 'w+') as cert:
+#             print(output, file= cert)
+#     except subprocess.CalledProcessError as err:
+#         print(err.returncode, err.output)
+#         sys.exit()
 
     check_certify_results(files)
