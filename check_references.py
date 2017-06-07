@@ -103,14 +103,13 @@ def check_certify_results(files):
         print('----------------------------------------------------------------')
 
 if __name__ == '__main__':
-    options = parse_args()
-
-    # Grab the files and make a string-list. Avoids issues becuase
-    # doing it this way includes the paths of the files
-    files = glob.glob(options.f)
+      options = parse_args()
+    #files = glob.glob(options.f)
+    files = glob.glob('*fits*') + glob.glob('*json*') + glob.glob('*asdf*')
     input_files = ' '.join(files)
     print(input_files)
-        # Check if there are files?  Call to certify will handle this
+    abs_paths = [os.path.abspath(f) for f in files]
+    # Check if there are files?  Call to certify will handle this
     assert len(files) != 0, 'No files matched'
     assert options.o == 'hst' or options.o == 'jwst', 'Invalid observatory, specify either \'hst\' or \'jwst\''
     context = get_context(options.o, options.c)
@@ -119,11 +118,11 @@ if __name__ == '__main__':
     print('----------------------------------------------------------------')
     print('--------------------------CERTIFYING----------------------------')
     print('----------------------------------------------------------------')
+    command = ' '.join(['crds', 'certify','--unique-errors-file', 'certify_errored_files.txt', '--comparison-context={}'.format(context), ' '.join(abs_paths)])
+#    certify_command = ("crds certify --unique-errors-file"
+#                       " certify_errored_files.txt --comparison-context={} {}").format(context, input_files)
 
-    certify_command = ("crds certify --unique-errors-file"
-                       " certify_errored_files.txt --comparison-context={} {}").format(context, input_files)
-
-    shell_cmd = shlex.split(certify_command)
+    shell_cmd = shlex.split(command)
 
     try:
         output = subprocess.check_output(shell_cmd)
