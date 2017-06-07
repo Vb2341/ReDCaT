@@ -103,11 +103,11 @@ def check_certify_results(files):
         print('----------------------------------------------------------------')
 
 if __name__ == '__main__':
-      options = parse_args()
-    #files = glob.glob(options.f)
-    files = glob.glob('*fits*') + glob.glob('*json*') + glob.glob('*asdf*')
-    input_files = ' '.join(files)
-    print(input_files)
+    options = parse_args()
+    files = glob.glob(options.f)
+#     files = glob.glob('*fits*') + glob.glob('*json*') + glob.glob('*asdf*')
+#     input_files = ' '.join(files)
+#     print(input_files)
     abs_paths = [os.path.abspath(f) for f in files]
     # Check if there are files?  Call to certify will handle this
     assert len(files) != 0, 'No files matched'
