@@ -2,6 +2,7 @@ from astropy.io import fits
 import glob
 import sys
 import subprocess
+import shlex
 
 
 #-------------------------------------------------------------------------------
@@ -28,20 +29,20 @@ def rename_files(list_of_files):
                 break
             else:
                 print('\n {} IS COMPLIANT'.format(item))
-
+    string_list_of_files = ' '.join(list_of_files)
     # Run uniqname
-    uniqname = 'crds uniqname -s -a -r --files *.fits'
-    try:
-        output = subprocess.check_output(command)
-        print(output)
+    uniqname = 'crds uniqname --hst -s -a -r --files {}'.format(string_list_of_files)
+    rename_cmd = shlex.split(uniqname)
+
+    with subprocess.Popen(rename_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE) as p:
+        out_dat, out_err = p.communicate()
+
+    print('{}\n{}'.format(out_dat.decode('utf-8'), out_err.decode('utf-8')))
 
     # Document rename results in a log file
     with open('rename.log', mode= 'w+') as log:
-        print(output, file= log)
+        print('{}\n{}'.format(out_dat.decode('utf-8'), out_err.decode('utf-8')), file=log)
 
-    except subprocess.CalledProcessError as err:
-        print(err.returncode, err.output)
-        sys.exit()
 
     print('DONE. FILES RENAMED')
 

@@ -59,6 +59,8 @@ def setup(delivery_directory):
         raise Exception(
             'Cannot Identify Delivery Type/Delivery Is Not Located in Delivery Area')
 
+    print(os.environ['CRDS_SERVER_URL'])
+    print(os.environ['CRDS_PATH'])
 
     return delivery_info
 #-------------------------------------------------------------------------------
@@ -68,7 +70,7 @@ def execute_delivery(delivery_directory, delivery_type):
         form INSTRUMENT_YYYY_MM_DD
     """
     instrument= delivery_type[0]
-    
+
     # Get the "reason for delivery" from the delivery form
     description= parse_delivery_form(os.path.join(delivery_directory,
         'delivery_form.txt'))
@@ -76,7 +78,7 @@ def execute_delivery(delivery_directory, delivery_type):
     # Create a string-list of files that the command line can use
     files= glob.glob(os.path.join(delivery_directory, '*fits*')) + \
            glob.glob(os.path.join(delivery_directory, '*json*'))
-    
+
     submit_files= ' '.join(files)
     print('\nFILES BEING SUBMITTED:\n{}'.format(submit_files))
 
@@ -87,25 +89,23 @@ def execute_delivery(delivery_directory, delivery_type):
         submit_files,
         instrument,
         description)
-    
-    # Split up the command string into a "command list" to be used by 
+
+    # Split up the command string into a "command list" to be used by
     # subprocess
     deliver_cmd = shlex.split(deliver)
-    print(deliver_cmd)
-    
-    # run crds submit
-    try:
-        output = subprocess.check_output(deliver_cmd)
-        print(output)     # so the user can see the output
+    print('\n',deliver_cmd)
 
-        # write the output to a delivery log
-        with open('delivery.log', mode= 'w+') as log:
-            print(output, file= log)
-            
-    except subprocess.CalledProcessError as err:
-        print(err.returncode, err.output)
-        sys.exit()
-    
+    # run crds submit
+    with subprocess.Popen(deliver_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE) as p:
+        out_dat, out_err = p.communicate()
+
+    print('{}\n{}'.format(out_dat.decode('utf-8'), out_err.decode('utf-8')))
+
+    with open('delivery_results.log', mode='w+') as log:
+        print('{}\n{}'.format(out_dat.decode('utf-8'), out_err.decode('utf-8')),
+            file=log)
+
+
     # Clean up the environment variables
     del os.environ['CRDS_PATH']
     del os.environ['CRDS_SERVER_URL']
@@ -118,7 +118,7 @@ def parse_delivery_form(form):
     # Open the form and read in the lines to a list
     f = open(form, 'r')
     lines = f.readlines()
-    
+
     # Find the first line of the description
     start = None
     for i,line in enumerate(lines):
@@ -126,16 +126,16 @@ def parse_delivery_form(form):
             start = i
         else:
             continue
-    
-    # Grab all the line after the first; 
+
+    # Grab all the line after the first;
     # The reason for delivery is the last question of the form
     description = ''
     for line in lines[start:]:
         description += line
-    
+
     # Get rid of the number and question; leaves only the description
     description_sans_number= description.split('17. Reason for delivery: ')[-1]
-    
+
     # Get rid of '\n' characters in case they exist
     if '\n' in description_sans_number:
         no_newline = [piece for piece in description_sans_number.split('\n') if '\n' not in piece]
@@ -148,7 +148,7 @@ def parse_delivery_form(form):
 
 #-------------------------------------------------------------------------------
 if __name__ == '__main__':
-    
+
     # Force this to be run in a delivery directory that's properly formatted
     delivery_directory = os.getcwd()
     if '/grp/redcat/staging/' not in delivery_directory:

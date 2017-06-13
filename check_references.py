@@ -119,19 +119,21 @@ if __name__ == '__main__':
     print('--------------------------CERTIFYING----------------------------')
     print('----------------------------------------------------------------')
 
-    certify_command = ("crds certify --unique-errors-file "
-                       "certify_errored_files.txt "
-                       "--comparison-context={} {}").format(context, ' '.join(abs_paths))
+    certify_command = ("crds certify --all-errors-file certify_results.txt "
+                       "--comparison-context={} {}").format(context,
+                                                            ' '.join(abs_paths))
 
     shell_cmd = shlex.split(certify_command)    # Split the commmand string into a subprocess-friendly list
-    print(shell_cmd)                            # of "tokenized" arguments
-    
+    print(shell_cmd, '\n')                            # of "tokenized" arguments
+
     # Open a subprocess and make sure to recover standard output and standard error
     with subprocess.Popen(shell_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE) as p:
-        output = p.communicate()[1].decode('utf-8')    # the output of communicate is a tuple (stdout_data, stderr_data) for
-    print(output)                                      # for some reason, Popen is setting the output of certify as the error...
-    
-    with open('certify_results.txt', mode= 'w+') as cert:
-        print(output, file= cert)
-        
+        out_dat, out_err = p.communicate()    # the output of communicate is a tuple (stdout_data, stderr_data)
+
+    print('{}\n{}'.format(out_dat.decode('utf-8'), out_err.decode('utf-8')))
+
+    with open('certify_results.txt', mode='a') as cert:
+        print('\n{}\n{}'.format(out_dat.decode('utf-8'), out_err.decode('utf-8')),
+            file=cert)
+
     check_certify_results(files)
