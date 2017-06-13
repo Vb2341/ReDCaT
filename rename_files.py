@@ -29,7 +29,9 @@ def rename_files(list_of_files):
                 break
             else:
                 print('\n {} IS COMPLIANT'.format(item))
+
     string_list_of_files = ' '.join(list_of_files)
+    
     # Run uniqname
     uniqname = 'crds uniqname --hst -s -a -r --files {}'.format(string_list_of_files)
     rename_cmd = shlex.split(uniqname)
