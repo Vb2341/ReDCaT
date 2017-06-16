@@ -119,7 +119,8 @@ if __name__ == '__main__':
     print('--------------------------CERTIFYING----------------------------')
     print('----------------------------------------------------------------')
 
-    certify_command = ("crds certify --all-errors-file certify_results.txt "
+    certify_command = ("crds certify --unique-errors-file "
+                       "certify_errored_files.txt "
                        "--comparison-context={} {}").format(context,
                                                             ' '.join(abs_paths))
 
