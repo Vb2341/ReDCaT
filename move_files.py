@@ -71,7 +71,7 @@ def move_results(directory, obs_instruments):
     for item in results:
         print('\nMOVING {} TO {}\n'.format(item, complete_destination))
         shutil.copy(item, complete_destination)
-    
+
     # HST references should go to central store
     if instrument in obs_instruments['hst']:
         move_hst_references(instrument, directory)
@@ -90,20 +90,20 @@ def move_hst_references(instrument, directory):
                            'WFC3': 'iref',
                            'WFPC2': 'uref',
                            'NICMOS': 'nref'}
-    
+
     # Grab the reference files
     reference_files = glob.glob(os.path.join(directory, '*fits'))
-    
-    # Construct the path 
+
+    # Construct the path
     central_store = os.path.join(central_store_path, central_store_names[instrument])
-    
+
     # Move the files
     for ref in reference_files:
         print('\nCOPYING {} TO {}'.format(os.path.split(ref)[-1],
             central_store_names[instrument]))
         shutil.copy(ref, central_store)
-        
+
 #-------------------------------------------------------------------------------
 if __name__ == '__main__':
-    deliver_directory = os.getcwd()
+    delivery_directory = os.getcwd()
     move_results(delivery_directory, instruments)
