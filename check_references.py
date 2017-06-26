@@ -119,10 +119,9 @@ if __name__ == '__main__':
     print('--------------------------CERTIFYING----------------------------')
     print('----------------------------------------------------------------')
 
-    certify_command = ("crds certify --unique-errors-file "
-                       "certify_errored_files.txt "
-                       "--comparison-context={} {}").format(context,
-                                                            ' '.join(abs_paths))
+    certify_command = ("crds certify --verbose -p --unique-errors-file "
+                       "certify_errored_files.txt --comparison-context={} {}").format(
+                            context,' '.join(abs_paths))
 
     shell_cmd = shlex.split(certify_command)    # Split the commmand string into a subprocess-friendly list
     print(shell_cmd, '\n')                            # of "tokenized" arguments
@@ -133,7 +132,7 @@ if __name__ == '__main__':
 
     print('{}\n{}'.format(out_dat.decode('utf-8'), out_err.decode('utf-8')))
 
-    with open('certify_results.txt', mode='a') as cert:
+    with open('certify_results.txt', mode='w+') as cert:
         print('\n{}\n{}'.format(out_dat.decode('utf-8'), out_err.decode('utf-8')),
             file=cert)
 
