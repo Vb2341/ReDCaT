@@ -14,12 +14,13 @@ def parse_directory_name(name):
     """
     # Split the name into pieces
     pieces = name.split('_')
-    instrument, year, month, day = pieces[0].upper(), pieces[1], pieces[2], pieces[3]
+    instrument = pieces[0].upper()
+    date_str = '_'.join(pieces[1:]) # Removes instrument from directory name, includes anything after the day (necessary for days with > 1 delivery on same inst)
 
     if instrument not in instruments['hst'] and instrument not in instruments['jwst']:
         raise NameError('Directory name does not comply with INSTR_YYYY_MM_DD or invalid INSTRUMENT')
 
-    return instrument, year, month, day
+    return instrument, date_str
 
 #-------------------------------------------------------------------------------
 def move_results(directory, obs_instruments):
@@ -38,11 +39,11 @@ def move_results(directory, obs_instruments):
 
     # Grab the delivery info
     delivery = directory.split('/')[-1]
-    instrument, year, month, day = parse_directory_name(delivery)
+    instrument, date_str = parse_directory_name(delivery)
     print('-'*50)
-    print('\n\t{} DELIVERY\n\t{} {} {}'.format(instrument, year, month, day))
+    print('\n\t{} DELIVERY\n\t{}'.format(instrument, date_str))
     print('-'*50)
-    date_dir = year + '_' + month + '_' + day
+    date_dir = date_str
 
     # Construct Destination
     if 'test' in directory:
