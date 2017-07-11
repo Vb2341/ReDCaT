@@ -134,7 +134,7 @@ def parse_delivery_form(form):
         description += line
 
     # Get rid of the number and question; leaves only the description
-    description_sans_number= description.split('17. Reason for delivery: ')[-1]
+    description_sans_number= description.split('17. Reason for delivery:')[-1]
 
     # Get rid of '\n' characters in case they exist
     if '\n' in description_sans_number:
