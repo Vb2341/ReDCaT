@@ -127,13 +127,16 @@ if __name__ == '__main__':
     print(shell_cmd, '\n')                            # of "tokenized" arguments
 
     # Open a subprocess and make sure to recover standard output and standard error
-    with subprocess.Popen(shell_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE) as p:
-        out_dat, out_err = p.communicate()    # the output of communicate is a tuple (stdout_data, stderr_data)
-
-    print('{}\n{}'.format(out_dat.decode('utf-8'), out_err.decode('utf-8')))
-
-    with open('certify_results.txt', mode='w+') as cert:
-        print('\n{}\n{}'.format(out_dat.decode('utf-8'), out_err.decode('utf-8')),
-            file=cert)
-
+    with subprocess.Popen(shell_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE) as p,\ 
+    open('certify_results.txt', mode='w+') as cert:
+        
+        while p.poll() is None:               # p.poll() looks for a return code
+            out_err = p.stderr.readline()     # crds.certify output is classified as standard error rather than output... 
+            print(out_err.decode('utf-8'))                # print to the terminal
+            print(out_err.decode('utf-8'), file=cert)     # print to the log file
+            
+        stragglers = p.stderr.read()          # Might be some output that hasn't been processed when the subprocess terminates
+        print(stragglers.decode('utf-8')
+        print(p.stderr.read()
+        
     check_certify_results(files)
