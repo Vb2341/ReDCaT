@@ -30,9 +30,10 @@ def parse_args():
 
     parser = argparse.ArgumentParser()
 
-    parser.add_argument('o',type=str,help=observatory_help,action='store')
+    parser.add_argument('o',type=str,help=observatory_help,action='store',
+        nargs='?',default=None)
     parser.add_argument('-f',type=str,help=files_help,action='store',
-        required=False,default='*.fits')
+        required=False,default=None)
     parser.add_argument('-c', type=str, help=context_help,action='store',
         required=False,default=None)
     arguments = parser.parse_args()
@@ -53,6 +54,33 @@ def get_context(observatory, context):
         cont_path = sorted(glob.glob('{}/*pmap'.format(cont_dir)))[-1]
     return cont_path
 
+def get_observatory(files):
+    hst_inst = ['ACS','WFC3','COS','STIS','NICMOS','WFPC2']
+    jwst_inst = ['FGS','MIRI','NIRCAM','NIRISS','NIRSPEC']
+    if options.o != None:
+        return options.o.lower()
+    else:
+        directory = os.path.split(os.getcwd())[-1]
+        instrument = directory.split('_')[0]
+        if instrument in hst_inst:
+            return 'hst'
+        elif instrument in jwst_inst:
+            return 'jwst'
+        else:
+            for f in files:
+                if '.fits' in f:
+                    try:
+                        instrument = fits.getval(f,'INSTRUME')
+                        if instrument in hst_inst:
+                            return 'hst'
+                        elif instrument in jwst_inst:
+                            return 'jwst'
+                        else:
+                            raise ValueError('Cannot match {} to an observatory'.format(instrument))
+                    except KeyError:
+                        raise KeyError('INSTRUME not found in fits header, so observatory cannot be determined')
+    # If if can't determine instrument, raise exception
+    raise ValueError('Cannot match files to an observatory')
 
 def print_extra_help():
     print('If experiencing errors, ensure you are using astroconda with the following packages are installed:')
@@ -71,6 +99,9 @@ def verify_files(files):
     print('--------------------------VERIFYING-----------------------------')
     print('----------------------------------------------------------------')
     for f in files:
+        if '.json' in f or '.asdf' in f:
+            print('{} is not a fits file, skipping verification'.format(f))
+            continue
         print('Verifying {}'.format(f))
         with warnings.catch_warnings(record=True) as w: # Workaround for astropy verify issues
             warnings.simplefilter("always") # Catch all warnings
@@ -92,6 +123,11 @@ def check_certify_results(files):
     # Get list of files that failed certify (parses output file)
     bad_files = [os.path.split(x.strip())[-1] for x in open('certify_errored_files.txt').readlines()]
     for f in files:
+        if '.json' in f or '.asdf' in f:
+            continue
+            # This should be okay, as only HST references get checked
+            # for VERIFYD/CERTIFYD keywords (because thats only checked in
+            # rename_files.py) and json/asdf are only jwst.
         hdu = fits.open(f, mode='update')
         if f in bad_files:
             hdu[0].header['CERTIFYD'] = 'FAILED'
@@ -104,15 +140,17 @@ def check_certify_results(files):
 
 if __name__ == '__main__':
     options = parse_args()
-    files = glob.glob(options.f)
-#     files = glob.glob('*fits*') + glob.glob('*json*') + glob.glob('*asdf*')
+    # files = glob.glob(options.f)
+    if not options.f:
+        files = glob.glob('*.fits') + glob.glob('*.json') + glob.glob('*.asdf')
 #     input_files = ' '.join(files)
 #     print(input_files)
     abs_paths = [os.path.abspath(f) for f in files]
     # Check if there are files?  Call to certify will handle this
     assert len(files) != 0, 'No files matched'
-    assert options.o == 'hst' or options.o == 'jwst', 'Invalid observatory, specify either \'hst\' or \'jwst\''
-    context = get_context(options.o, options.c)
+    observatory = get_observatory(files)
+    assert observatory == 'hst' or observatory == 'jwst', 'Invalid observatory, specify either \'hst\' or \'jwst\''
+    context = get_context(observatory, options.c)
     for f in files: print(f)
     verify_files(files)
     print('----------------------------------------------------------------')

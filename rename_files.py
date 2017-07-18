@@ -24,14 +24,14 @@ def rename_files(list_of_files):
                 print('VERIFICATION KEYWORDS NOT FOUND!!')
                 break
 
-            if verified != 'PASSED' and certified != 'PASSED':
+            if verified != 'PASSED' or certified != 'PASSED':
                 print('\n FILE NOT COMPLIANT \n \t {}'.format(item))
                 break
             else:
                 print('\n {} IS COMPLIANT'.format(item))
 
     string_list_of_files = ' '.join(list_of_files)
-    
+
     # Run uniqname
     uniqname = 'crds uniqname --hst -s -a -r --files {}'.format(string_list_of_files)
     rename_cmd = shlex.split(uniqname)
