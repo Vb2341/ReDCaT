@@ -56,7 +56,7 @@ def send_email(email_username, subject):
     message['To'] = 'redcat@stsci.edu'
 
     # Send it!
-    s = smtplib.SMTP('localhost')
+    s = smtplib.SMTP('smtp.stsci.edu')
     s.send_message(message)
     s.quit()
 
