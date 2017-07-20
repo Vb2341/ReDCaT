@@ -18,7 +18,7 @@ def recover_info():
     """
     # Interactively acquire the instrument, ops/test destination, email username and subject to make things simple
     instrument = input('Instrument: ').upper()
-    if instrument not in instruments['hst'] and instrument not in instruments['jwst']
+    if instrument not in instruments['hst'] and instrument not in instruments['jwst']:
         raise KeyError('INSTRUMENT DOES NOT EXIST\nor a typo may have occurred..\nplease try again')
 
     ops_or_test = input('Is the deliery going to CRDS OPS or CRDS TEST (ops/test): ')
