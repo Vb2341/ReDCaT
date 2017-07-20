@@ -162,7 +162,7 @@ def submit_to_redcat():
 
     send_to_staging(instrument, today, ops_or_test)
 
-    # send_email(username, subject)
+    send_email(username, subject)
 
 # ======================================================================================================================
 
