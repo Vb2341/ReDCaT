@@ -140,9 +140,8 @@ def check_certify_results(files):
 
 if __name__ == '__main__':
     options = parse_args()
-    # files = glob.glob(options.f)
-    if not options.f:
-        files = glob.glob('*.fits') + glob.glob('*.json') + glob.glob('*.asdf')
+    if options.f: files = glob.glob(options.f)
+    else options.f: files = glob.glob('*.fits') + glob.glob('*.json') + glob.glob('*.asdf')
 #     input_files = ' '.join(files)
 #     print(input_files)
     abs_paths = [os.path.abspath(f) for f in files]
