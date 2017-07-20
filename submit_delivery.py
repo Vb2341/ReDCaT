@@ -92,6 +92,7 @@ def send_to_staging(delivery_instrument, date, staging_location):
     print('\nDESTINATION: {}'.format(destination))
 
     os.mkdir(destination)
+    os.chmod(destination, 777)
 
     current_dr = os.getcwd()
     fits_files = os.path.join(current_dr, '*fits')
@@ -108,6 +109,7 @@ def send_to_staging(delivery_instrument, date, staging_location):
     for i, f in enumerate(files_to_deliver):
         print('{} out of {}'.format(i+1, len(files_to_deliver)))
         shutil.copy(f, destination)
+    os.chmod(os.path.join(destination, '*'), 777)
 
     print('\nDone!')
 
