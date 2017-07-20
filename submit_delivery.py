@@ -76,6 +76,27 @@ def date_to_string(date):
 # ======================================================================================================================
 
 
+def update_delivery_form(path_to_delivery_form, files_being_delivered, file_destination):
+    """Update the delivery form to reflect the location and names of the files being delivered
+    """
+    form_path = os.path.split(path_to_delivery_form)[0]
+    temp_file = os.path.join(form_path, 'temp.txt')
+    
+    with open(temp_file, mode='w+') as out, open(path_to_delivery_form) as old:
+        for line in old:
+            if "16. Disk location and name of files:" in line:
+                f_list = '{}\n'.format(file_destination)
+                for f in files_being_delivered:
+                    name = os.path.split(f)[-1]
+                    f_list += '{}\n'.format(name)
+                line += f_list
+            out.write(line)
+
+    shutil.copy(temp_file, path_to_delivery_form)
+
+# ======================================================================================================================
+
+
 def send_to_staging(delivery_instrument, date, staging_location):
     """Given the instrument string and the current date, create a delivery directory in /grp/redcat/staging/[ops/test]/
     """
@@ -86,13 +107,26 @@ def send_to_staging(delivery_instrument, date, staging_location):
     month = date_to_string(date.month)
     day = date_to_string(date.day)
 
-    directory_name = '{}_{}_{}_{}'.format(delivery_instrument, year, month, day)
+    directory_name = '{}_{}_{}_{}_0'.format(delivery_instrument, year, month, day)
+
+    # Check to see if the destination alreading exists in the staging area
+    pending_deliveries = os.listdir(staging_directory)
+    if directory_name in pending_deliveries:
+        while (directory_name in pending_deliveries) is True:
+            directory_pieces = directory_name.split('_')
+
+            directory_name_core = '_'.join(directory_pieces[:-1])
+            delivery_number = int(directory_pieces[-1])
+
+            delivery_number += 1
+
+            directory_name = directory_name_core + '_' + str(delivery_number)
 
     destination = os.path.join(staging_directory, directory_name)
     print('\nDESTINATION: {}'.format(destination))
 
     os.mkdir(destination)
-    os.chmod(destination, 777)
+    os.chmod(destination, 0o777)
 
     current_dr = os.getcwd()
     fits_files = os.path.join(current_dr, '*fits')
@@ -105,11 +139,16 @@ def send_to_staging(delivery_instrument, date, staging_location):
     for f in files_to_deliver:
         print('\t{}'.format(f))
 
+    print('\nUpdating delivery form... adding destination and filenames')
+    update_delivery_form(delivery_form, files_to_deliver, destination)
+
     print('\nMoving files...')
     for i, f in enumerate(files_to_deliver):
         print('{} out of {}'.format(i+1, len(files_to_deliver)))
         shutil.copy(f, destination)
-    os.chmod(os.path.join(destination, '*'), 777)
+
+        filename = os.path.split(f)[-1]  # isolate the filenames for use below
+        os.chmod(os.path.join(destination, filename), 0o777)  # os.chmod can only be used on one file at a time
 
     print('\nDone!')
 
@@ -123,7 +162,7 @@ def submit_to_redcat():
 
     send_to_staging(instrument, today, ops_or_test)
 
-    send_email(username, subject)
+    # send_email(username, subject)
 
 # ======================================================================================================================
 
