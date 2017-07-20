@@ -70,7 +70,7 @@ def get_observatory(files):
             for f in files:
                 if '.fits' in f:
                     try:
-                        instrument = fits.getval(f,'INSTRUME')
+                        instrument = fits.getval(f,'INSTRUME').upper()
                         if instrument in hst_inst:
                             return 'hst'
                         elif instrument in jwst_inst:
