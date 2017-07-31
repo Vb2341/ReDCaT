@@ -7,93 +7,86 @@ import getpass
 from move_files import parse_directory_name
 
 # Constants
-instruments= {'hst': ['STIS', 'COS', 'ACS', 'WFC3', 'NICMOS', 'WFPC2'],
-              'jwst': ['FGS', 'MIRI', 'NIRCAM', 'NIRISS', 'NIRSPEC']}
+instruments = {'hst': ['STIS', 'COS', 'ACS', 'WFC3', 'NICMOS', 'WFPC2'],
+               'jwst': ['FGS', 'MIRI', 'NIRCAM', 'NIRISS', 'NIRSPEC']}
 
-#-------------------------------------------------------------------------------
-def setup(delivery_directory):
-    """ Set up the user's environment to enable the command line delivery
-        tool to be run.
+# ----------------------------------------------------------------------------------------------------------------------
+
+
+def setup(delivery_path):
+    """ Set up the user's environment to enable the command line delivery tool to be run.
     """
     # Get username and password
-    username= getpass.getuser()
-    password= getpass.getpass(prompt= 'CRDS Webpage Password:')
+    username = getpass.getuser()
+    password = getpass.getpass(prompt='CRDS Webpage Password:')
 
     # Create an init file that stores the user's username and password
     # to be used with the command line tool
-    init_file= os.path.join(os.environ['HOME'], '.crds.ini')
-    with open(init_file, mode= 'w+') as f:
-        print('[authentication]\nCRDS_USERNAME = {}\nCRDS_PASSWORD = {}'.format(
-            username, password), file= f)
+    init_file = os.path.join(os.environ['HOME'], '.crds.ini')
+    with open(init_file, mode='w+') as f:
+        print('[authentication]\nCRDS_USERNAME = {}\nCRDS_PASSWORD = {}'.format(username, password), file=f)
 
     # set the permissions of the file
     os.chmod(init_file, 0o600)
 
     # Grab delivery info based on the delivery directory name
-    delivery_name= delivery_directory.split('/')[-1]
-    delivery_info= parse_directory_name(delivery_name)  # returns (instrument, year, month, day)
-    instrument= delivery_info[0]
+    delivery_name = delivery_path.split('/')[-1]
+    delivery_info = parse_directory_name(delivery_name)  # returns (instrument, year, month, day)
+    instrument = delivery_info[0]
 
     # Set the appropriate environment variables to operate the command line tool
-    if 'test' in delivery_directory:
+    if 'test' in delivery_path:
         os.environ['CRDS_PATH'] = "{}/crds_cache_test".format(os.environ['HOME'])
         if instrument in instruments['hst']:
             os.environ['CRDS_SERVER_URL'] = 'https://hst-crds-test.stsci.edu'
         elif instrument in instruments['jwst']:
             os.environ['CRDS_SERVER_URL'] = 'https://jwst-crds-test.stsci.edu'
         else:
-            raise Exception(
-                'Unknown Isntrument or Observatory/Delivery Area Incorrectly Formatted')
+            raise Exception('Unknown Isntrument or Observatory/Delivery Area Incorrectly Formatted')
 
-    elif 'ops' in delivery_directory:
+    elif 'ops' in delivery_path:
         os.environ['CRDS_PATH'] = "{}/crds_cache_ops".format(os.environ['HOME'])
         if instrument in instruments['hst']:
             os.environ['CRDS_SERVER_URL'] = 'https://hst-crds.stsci.edu'
         elif instrument in instruments['jwst']:
             os.environ['CRDS_SERVER_URL'] = 'https://jwst-crds.stsci.edu'
         else:
-            raise Exception(
-                'Unknown Isntrument or Observatory/Delivery Area Incorrectly Formatted')
+            raise Exception('Unknown Isntrument or Observatory/Delivery Area Incorrectly Formatted')
 
     else:
-        raise Exception(
-            'Cannot Identify Delivery Type/Delivery Is Not Located in Delivery Area')
+        raise Exception('Cannot Identify Delivery Type/Delivery Is Not Located in Delivery Area')
 
     print(os.environ['CRDS_SERVER_URL'])
     print(os.environ['CRDS_PATH'])
 
     return delivery_info
-#-------------------------------------------------------------------------------
-def execute_delivery(delivery_directory, delivery_type):
-    """ Deliver reference files to the appropriate system given that it resides
-        in a directory located in /grp/redcat/staging/[ops/test]/ and of the
-        form INSTRUMENT_YYYY_MM_DD
+
+# ----------------------------------------------------------------------------------------------------------------------
+
+
+def execute_delivery(staging_directory, ins_and_date):
+    """ Deliver reference files to the appropriate system given that it resides in a directory located in
+        /grp/redcat/staging/[ops/test]/ and of the form INSTRUMENT_YYYY_MM_DD
     """
-    instrument= delivery_type[0]
+    instrument = ins_and_date[0]
 
     # Get the "reason for delivery" from the delivery form
-    description= parse_delivery_form(os.path.join(delivery_directory,
-        'delivery_form.txt'))
+    description = parse_delivery_form(os.path.join(staging_directory, 'delivery_form.txt'))
 
     # Create a string-list of files that the command line can use
-    files= glob.glob(os.path.join(delivery_directory, '*fits*')) + \
-           glob.glob(os.path.join(delivery_directory, '*json*'))
+    files = glob.glob(os.path.join(staging_directory, '*fits*')) + glob.glob(os.path.join(staging_directory, '*json*'))
 
-    submit_files= ' '.join(files)
+    submit_files = ' '.join(files)
     print('\nFILES BEING SUBMITTED:\n{}'.format(submit_files))
 
     # Deliver the files
-    deliver= ("crds submit "
-              "--files {} --monitor --wait --wipe --log-time "
-              "--stats --creator '{} Team' --description '{}'").format(
-        submit_files,
-        instrument,
-        description)
+    deliver = ("crds submit --files {} --monitor --wait --wipe --log-time "
+               "--stats --creator '{} Team' --description '{}'").format(submit_files, instrument, description)
 
     # Split up the command string into a "command list" to be used by
     # subprocess
     deliver_cmd = shlex.split(deliver)
-    print('\n',deliver_cmd)
+    print('\n', deliver_cmd)
 
     # run crds submit
     with subprocess.Popen(deliver_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE) as p:
@@ -102,26 +95,26 @@ def execute_delivery(delivery_directory, delivery_type):
     print('{}\n{}'.format(out_dat.decode('utf-8'), out_err.decode('utf-8')))
 
     with open('delivery_results.log', mode='w+') as log:
-        print('{}\n{}'.format(out_dat.decode('utf-8'), out_err.decode('utf-8')),
-            file=log)
-
+        print('{}\n{}'.format(out_dat.decode('utf-8'), out_err.decode('utf-8')), file=log)
 
     # Clean up the environment variables
     del os.environ['CRDS_PATH']
     del os.environ['CRDS_SERVER_URL']
 
-#-------------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
+
+
 def parse_delivery_form(form):
-    """ Find the 'reason for delivery' in the delivery form to
-        provide to the command line tool
+    """ Find the 'reason for delivery' in the delivery form to provide to the command line tool
     """
     # Open the form and read in the lines to a list
     f = open(form, 'r')
     lines = f.readlines()
+    f.close()
 
     # Find the first line of the description
     start = None
-    for i,line in enumerate(lines):
+    for i, line in enumerate(lines):
         if 'Reason for delivery:' in line:
             start = i
         else:
@@ -134,7 +127,7 @@ def parse_delivery_form(form):
         description += line
 
     # Get rid of the number and question; leaves only the description
-    description_sans_number= description.split('17. Reason for delivery:')[-1]
+    description_sans_number = description.split('17. Reason for delivery:')[-1]
 
     # Get rid of '\n' characters in case they exist
     if '\n' in description_sans_number:
@@ -146,7 +139,9 @@ def parse_delivery_form(form):
     print('\nReason for Delivery: {}'.format(final_description))
     return final_description
 
-#-------------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
+
+
 if __name__ == '__main__':
 
     # Force this to be run in a delivery directory that's properly formatted

@@ -7,7 +7,9 @@ import shutil
 instruments = {'hst': ['STIS', 'COS', 'ACS', 'WFC3', 'NICMOS', 'WFPC2'],
                'jwst': ['FGS', 'MIRI', 'NIRCAM', 'NIRISS', 'NIRSPEC']}
 
-#-------------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
+
+
 def parse_directory_name(name):
     """ Take the name of a delivery directory of the form INSTRUMENT_YYYY_MM_DD
         and retrieves delivery information from it
@@ -15,14 +17,16 @@ def parse_directory_name(name):
     # Split the name into pieces
     pieces = name.split('_')
     instrument = pieces[0].upper()
-    date_str = '_'.join(pieces[1:]) # Removes instrument from directory name, includes anything after the day (necessary for days with > 1 delivery on same inst)
+    date_str = '_'.join(pieces[1:])  # Removes instrument from directory name. Works for n deliveries > 1 in a day
 
     if instrument not in instruments['hst'] and instrument not in instruments['jwst']:
         raise NameError('Directory name does not comply with INSTR_YYYY_MM_DD or invalid INSTRUMENT')
 
     return instrument, date_str
 
-#-------------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
+
+
 def move_results(directory, obs_instruments):
     """ Move all .log and .txt files to the appropriate directory on /ifs/....
         This should include the following:
@@ -79,7 +83,9 @@ def move_results(directory, obs_instruments):
 
     print('\n\tFILE MOVES COMPLETED\n')
 
-#-------------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
+
+
 def move_hst_references(instrument, directory):
     """ Move HST reference files to the appropriate ..ref directory on central store
     """
@@ -100,11 +106,12 @@ def move_hst_references(instrument, directory):
 
     # Move the files
     for ref in reference_files:
-        print('\nCOPYING {} TO {}'.format(os.path.split(ref)[-1],
-            central_store_names[instrument]))
+        print('\nCOPYING {} TO {}'.format(os.path.split(ref)[-1], central_store_names[instrument]))
         shutil.copy(ref, central_store)
 
-#-------------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
+
+
 if __name__ == '__main__':
     delivery_directory = os.getcwd()
     move_results(delivery_directory, instruments)

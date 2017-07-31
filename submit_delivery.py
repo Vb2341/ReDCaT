@@ -160,11 +160,11 @@ def send_to_staging(delivery_instrument, date, staging_location):
 def submit_to_redcat():
     """Submit reference files to the ReDCaT Team
     """
-    instrument, ops_or_test, username, today, subject, cc_emails = recover_info()
+    instrument, ops_or_test, username, today, subject = recover_info()
 
     send_to_staging(instrument, today, ops_or_test)
 
-    send_email(username, subject, cc_emails)
+    send_email(username, subject)
 
 # ======================================================================================================================
 

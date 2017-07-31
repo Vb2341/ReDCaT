@@ -13,7 +13,7 @@ a. (other e-mail addresses)
 a. Was the DESCRIP keyword updated with a summary of why the file was updated or created? (yes/no):
 b. If the reference files are replacing previous versions, do the new USEAFTER dates exactly match the old ones?
 
-7. Verification for compliance complete? (fits compliant, info_ref_files.py, certify, etc.):
+7. (OPTIONAL) Verification for compliance complete? (fits compliant, certify, etc.):
 
 8. Should these files be ingested in the DMS, Archive and CRDS databases?(If not clear or needs to go to CRDS-TEST first, indicate here):
 a. If files are pysynphot files, should they be delivered to ETC?

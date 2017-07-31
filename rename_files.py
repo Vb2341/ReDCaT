@@ -1,17 +1,16 @@
 from astropy.io import fits
 import glob
-import sys
 import subprocess
 import shlex
 
 
-#-------------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
+
+
 def rename_files(list_of_files):
-    ''' This checks that the files have been checked for compliance with fits
-        standards as well as CRDS standards using check_references.py
-        Should check the output of check_references.py **before**
-        running this.
-    '''
+    """ This checks that the files have been checked for compliance with fits standards as well as CRDS standards using
+        check_references.py Should check the output of check_references.py **before** running this.
+    """
     # Check that check_references.py has been run on the files.
     # If not, quit.
     # check_references.py creates keywords 'VERIFIED' and 'CERTIFYD'
@@ -45,10 +44,11 @@ def rename_files(list_of_files):
     with open('rename.log', mode= 'w+') as log:
         print('{}\n{}'.format(out_dat.decode('utf-8'), out_err.decode('utf-8')), file=log)
 
-
     print('DONE. FILES RENAMED')
 
-#-------------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
+
+
 if __name__ == "__main__":
 
     files= glob.glob('*fits')
