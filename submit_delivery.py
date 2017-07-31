@@ -26,7 +26,7 @@ def recover_info():
         raise TypeError('Must specify if the delivery is going to CRDS OPS or CRDS TEST')
 
     username = input('Email Username: ').lower()
-    subject = input('Subject line for ReDCaT email (please refer to the delivery instructions): ')
+    subject = input('Subject of delivery request: ')
 
     # Today's date for constructing the delivery directory of INSTRUMENT_YYYY_MM_DD
     today = Time.now().datetime
@@ -51,9 +51,11 @@ def send_email(email_username, subject):
         sys.exit()
 
     # Build the email
+    deliverer = '{}@stsci.edu'.format(email_username)
     message['Subject'] = subject
-    message['From'] = '{}@stsci.edu'.format(email_username)
+    message['From'] = deliverer
     message['To'] = 'redcat@stsci.edu'
+    message['CC'] = deliverer
 
     # Send it!
     s = smtplib.SMTP('smtp.stsci.edu')
@@ -158,11 +160,11 @@ def send_to_staging(delivery_instrument, date, staging_location):
 def submit_to_redcat():
     """Submit reference files to the ReDCaT Team
     """
-    instrument, ops_or_test, username, today, subject = recover_info()
+    instrument, ops_or_test, username, today, subject, cc_emails = recover_info()
 
     send_to_staging(instrument, today, ops_or_test)
 
-    send_email(username, subject)
+    send_email(username, subject, cc_emails)
 
 # ======================================================================================================================
 
