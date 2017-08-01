@@ -84,7 +84,7 @@ def update_delivery_form(path_to_delivery_form, files_being_delivered, file_dest
     form_path = os.path.split(path_to_delivery_form)[0]
     temp_file = os.path.join(form_path, 'temp.txt')
     
-    with open(temp_file, mode='w+') as out, open(path_to_delivery_form) as old:
+    with open(temp_file, mode='w+', encoding='utf-8') as out, open(path_to_delivery_form, encoding='utf-8') as old:
         for line in old:
             if "16. Disk location and name of files:" in line:
                 f_list = '{}\n'.format(file_destination)
