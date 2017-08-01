@@ -42,7 +42,7 @@ def send_email(email_username, subject):
 
     # Check that the delivery form exists
     try:
-        with open('delivery_form.txt') as df:
+        with open('delivery_form.txt', encoding='utf-8') as df:
             message = MIMEText(df.read())
 
     except OSError:
