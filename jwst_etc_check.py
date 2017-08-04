@@ -160,27 +160,27 @@ def check_fits_files(fits_files):
                   result +=  '\''+str(read_key)+'\','
                   if  keys[i] =='TELESCOP':
                       if read_key != 'JWST':
-                        print read_key, 'IS NOT A VALID ENTRY for:', keys[i]
+                        print(read_key, 'IS NOT A VALID ENTRY for:', keys[i])
 
                   if  keys[i] =='SYSTEM':
                       if read_key != 'MODELING':
-                        print read_key, 'IS NOT A VALID ENTRY for:', keys[i]
+                        print(read_key, 'IS NOT A VALID ENTRY for:', keys[i])
 
 
                   if  keys[i] =='INSTRUME':
                       if read_key not in ['NIRCAM', 'MIRI','NIRSPEC', 'NIRISS', 'TELESCOPE']:
-                        print read_key, 'IS NOT A VALID ENTRY for:', keys[i]
+                        print(read_key, 'IS NOT A VALID ENTRY for:', keys[i])
 
                   if  keys[i] =='FILETYPE':
                       if read_key not in ['THROUGHPUT_TABLE', 'IMAGE', 'CORR_MATRIX', 'DATA_TABLE']:
-                        print read_key, 'IS NOT A VALID ENTRY for:', keys[i]
+                        print(read_key, 'IS NOT A VALID ENTRY for:', keys[i])
 
                   if  keys[i] =='PEDIGREE':
                       if read_key not in  ['INFLIGHT YYYY-MM-DD YYYY-MM-DD', 'GROUND','PLACEHOLDER', 'DUMMY']:
-                        print read_key, 'IS NOT A VALID ENTRY for:', keys[i]
+                        print(read_key, 'IS NOT A VALID ENTRY for:', keys[i])
 
                 else:
-                    print 'Keyword ',keys[i],' not found'
+                    print('Keyword ',keys[i],' not found')
                     result += '============Keyword '+keys[i]+' not found\n'
             resultk += ']\n'
             result += ']\n'
@@ -247,7 +247,7 @@ def move_to_pandeia(files, instrument, destination):
         print('Replacing {} with {}'.format(old_file,f))
         if options.m: # Explicit control for replacing the files
             os.remove(old_file)
-            shutil.move(f,final_dir)
+            shutil.copy(f,final_dir)
 
 
 def update_json_file(config_file, files, destination, instrument):
