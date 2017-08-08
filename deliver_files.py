@@ -80,8 +80,13 @@ def execute_delivery(staging_directory, ins_and_date):
     print('\nFILES BEING SUBMITTED:\n{}'.format(submit_files))
 
     # Deliver the files
-    deliver = ("crds submit --files {} --monitor --wait --wipe --log-time "
-               "--stats --creator '{} Team' --description '{}'").format(submit_files, instrument, description)
+    if instrument in instruments['jwst']:
+        deliver = ("crds submit --files {} --monitor --wait --wipe --log-time "
+                   "--stats --creator '{} Team' --description '{}'").format(submit_files, instrument, description)
+
+    elif instrument in instruments['hst']:
+        deliver = ("crds submit --files {} --monitor --wait --wipe --log-time --dont-auto-rename "
+                   "--stats --creator '{} Team' --description '{}'").format(submit_files, instrument, description)
 
     # Split up the command string into a "command list" to be used by
     # subprocess
