@@ -74,7 +74,9 @@ def execute_delivery(staging_directory, ins_and_date):
     description = parse_delivery_form(os.path.join(staging_directory, 'delivery_form.txt'))
 
     # Create a string-list of files that the command line can use
-    files = glob.glob(os.path.join(staging_directory, '*fits*')) + glob.glob(os.path.join(staging_directory, '*json*'))
+    files = glob.glob(os.path.join(staging_directory, '*fits*'))
+    files += glob.glob(os.path.join(staging_directory, '*json*'))
+    files += glob.glob(os.path.join(staging_directory, '*asdf*'))
 
     submit_files = ' '.join(files)
     print('\nFILES BEING SUBMITTED:\n{}'.format(submit_files))
