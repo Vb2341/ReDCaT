@@ -29,7 +29,7 @@ b. If the file being replaced is bad, and should not be used with any data, plea
 a. if yes, please include the JIRA issue number here
 
 12. What is the level of change of the file? (e.g. compared to old file it could be: SEVERE, MODERATE, TRIVIAL - initial delivery of a reference file type is always SEVERE):
-a. If files are tables, please indicate exactly which rows have changed (for HST tables, please include the output from compare_table.py):
+a. If files are tables, please indicate exactly which rows have changed:
 
 13. Please indicate which modes (e.g. all the STIS, FUVMAMA, E140L modes) are affected by the changes in the file:
 
@@ -37,6 +37,6 @@ a. If files are tables, please indicate exactly which rows have changed (for HST
 
 15. Additional Considerations:
 
-16. Disk location and name of files (NOTE: Location should be: /grp/redcat/staging/[test/ops]/<instrument>_yyyy_mm_dd/):
+16. Disk location and name of files:
 
 17. Reason for delivery:
