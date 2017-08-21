@@ -21,9 +21,9 @@ def recover_info():
     if instrument not in instruments['hst'] and instrument not in instruments['jwst']:
         raise KeyError('INSTRUMENT DOES NOT EXIST\nor a typo may have occurred..\nplease try again')
 
-    ops_or_test = input('Is the deliery going to CRDS OPS or CRDS TEST (ops/test): ')
-    if ops_or_test not in ['ops', 'test']:
-        raise TypeError('Must specify if the delivery is going to CRDS OPS or CRDS TEST')
+    which_staging = input('Is the deliery going to CRDS OPS, CRDS TEST or ETC (ops/test/etc): ')
+    if which_staging not in ['ops', 'test', 'etc']:
+        raise TypeError('Must specify if the delivery is going to CRDS OPS, CRDS TEST or ETC')
 
     username = input('Email Username: ').lower()
     subject = input('Subject of delivery request: ')
@@ -31,7 +31,7 @@ def recover_info():
     # Today's date for constructing the delivery directory of INSTRUMENT_YYYY_MM_DD
     today = Time.now().datetime
 
-    return instrument, ops_or_test, username, today, subject
+    return instrument, which_staging, username, today, subject
 
 # ======================================================================================================================
 
