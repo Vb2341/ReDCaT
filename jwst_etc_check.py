@@ -113,14 +113,21 @@ def check_single_section(json_block, section_name):
     return passed
 
 
-def check_json_sections(json_files):
+def check_json_sections(json_files, instrument):
     """ Check a json file for required top level sections, wrap subsection
         checking.
     """
+    template = '/user/mcmaster/CRDS/for_matt/templates/{}.json'.format(instrument)
+    template_data = json.load(open(template))
+    template_version = template_data['-delivered-for-version-']
     for f in json_files:
         statuses = []
         print('Checking {}'.format(f))
         with open(f) as json_data:
+            version = data['-delivered-for-version-']
+            if version != template_version:
+                print('WARNING: Version of file submitted ({}) does not match template version ({})'.format(version, template_version))
+                statuses.append(False)
             data = json.load(json_data)
             first_keys = ['meta', 'paths']
             for fk in first_keys:
@@ -355,6 +362,15 @@ if __name__ == '__main__':
     fits_files = [f for f in files if '.fits' in f]
     json_files = [f for f in files if '.json' in f]
 
+    instrument = options.i
+    instruments = ['miri', 'nirspec', 'nircam', 'niriss', 'telescope']
+    if not instrument:
+        for inst in instruments:
+            if inst in json_files[0]:
+                instrument = inst
+                break
+    assert instrument in instruments, 'Cannot match instrument to one of: {}'.format(' '.join(instruments))
+
     # Verify both file types
     print('----------------------------------------------------------------')
     print('--------------------------VERIFYING-----------------------------')
@@ -376,14 +392,6 @@ if __name__ == '__main__':
     local_time = datetime.datetime.now()
     files = add_timestamps(files, local_time)
 
-    instrument = options.i
-    instruments = ['miri', 'nirspec', 'nircam', 'niriss', 'telescope']
-    if not instrument:
-        for inst in instruments:
-            if inst in json_files[0]:
-                instrument = inst
-                break
-    assert instrument in instruments, 'Cannot match instrument to one of: {}'.format(' '.join(instruments))
 
     print('----------------------------------------------------------------')
     print('--------------------------UPDATING JSON-------------------------')
