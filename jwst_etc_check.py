@@ -1,3 +1,19 @@
+"""Tool for handling delivery of JWST ETC files
+Authors
+-------
+    - Varun Bajaj, Brian Brooks August 2017
+Use
+---
+    This script is intended to be run from the comand line:
+    ::
+        python jwst_etc_check.py [-d <destination> -f <files> -i <instrument> -u -m]
+    -d <destination> - Path to current Pandeia directory (where files will be placed)
+    -f <files> - Files to check/update/move, accepts wildcards
+    -i <instrument> - Instrument the files are used for
+    -u - Switch to update the JSON file with the new filenames
+    -m - Switch to move files into the Pandeia directory.
+"""
+
 import argparse
 import datetime
 import glob
