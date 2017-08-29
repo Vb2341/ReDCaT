@@ -5,20 +5,22 @@ import pysynphot as pysyn
 from datetime import date
 import glob
 import dask
+from dask.diagnostics import ProgressBar
 import argparse
+import pandas
 
 # ----------------------------------------------------------------------------------------------------------------------
 
 
 def find_models(model_directory):
     """ Find all models in a given directory"""
-    print('\nFinding models..\n')
+    print('\n\t==============')
+    print('\n\tFinding models')
+    print('\n\t==============')
 
     path = os.path.join(model_directory, 'lte*')
     models = glob.glob(path)
-    for f in models:
-        loc, name = os.path.split(f)
-        print('\t{}'.format(name))
+    print('\nTotal number of files found: {}'.format(len(models)))
 
     return models
 
@@ -29,7 +31,9 @@ def sort_by_temp_metal(list_of_model_files):
     """ Given a list of models, sort them by temperature. The temperature is given as a part of the file naming
         convention
     """
-    print('\nSorting files by Temperature and Metallicity')
+    print('\n\t============================================')
+    print('\n\tSorting files by Temperature and Metallicity')
+    print('\n\t============================================\n')
     # Create a dictionary that will contain a list of files for each temperature keyword
     files_per_tempmetal = {}
 
@@ -39,12 +43,15 @@ def sort_by_temp_metal(list_of_model_files):
 
         temp = name[3:6]
         metal = name[10:14]
-        keys.append((temp, metal))
+        if (temp, metal) not in keys:
+            keys.append((temp, metal))
+        else:
+            continue
 
     for t, m in keys:
         key = '_'.join([t, m])
         files_per_tempmetal[key] = [model for model in list_of_model_files if (t in model and m in model)]
-        print('\nFound {} models for {}\{} temperature\metallicity values'.format(len(files_per_tempmetal[key]), t, m))
+        print('Found {} models for {}\{} temperature\metallicity values'.format(len(files_per_tempmetal[key]), t, m))
 
     return files_per_tempmetal
 
@@ -54,10 +61,15 @@ def sort_by_temp_metal(list_of_model_files):
 def generate_fits(temperature_metallicity_key):
     """ Generate a fits file name and primary header based on the key generated in sort_by_temp_metal
     """
-    print('\nCreating new file')
-
     temperature, metallicity = temperature_metallicity_key.split('_')[0], temperature_metallicity_key.split('_')[1]
-    temperature += '00'
+    print('\n\t=====================================================')
+    print('\n\tCreating new file for {}/{} temperature/metallicity'.format(temperature, metallicity))
+    print('\n\t=====================================================\n')
+
+    if int(temperature[0]) == 0:
+        temperature = temperature[1:] + '00'
+    else:
+        temperature += '00'
 
     # Metallicity sign
     if '-' in metallicity:
@@ -66,13 +78,12 @@ def generate_fits(temperature_metallicity_key):
         sign = 'p'
 
     # Construct filename and corresponding HDU object
-    output_file = 'phoenix' + sign + metallicity + '_' + temperature + '.fits'
+    output_file = 'phoenix' + sign + metallicity[1:] + '_' + temperature + '.fits'
 
     today = date.today()
     date_string = '{}-{}-{}'.format(today.year, today.month, today.day)
 
-    pri_hdu = fits.PrimaryHDU()
-    header = pri_hdu.header[0]
+    header = fits.Header()
     header['FILENAME'] = (output_file, 'Name of file')
     header['MAPKEY'] = ('phoenix', 'Mapping identifier for filetype')
     header['CONTACT'] = ('J. White/M. McMaster', 'ReDCaT Team Deputy/Lead')
@@ -86,47 +97,42 @@ def generate_fits(temperature_metallicity_key):
     header['FLUXUNT'] = ('Flambda', 'erg/cm^2/s/Angstrom')
     header['COMMENT'] = '= Files translated to CDBS format by J. White'
 
+    pri_hdu = fits.PrimaryHDU(header=header)
+
     return pri_hdu, output_file
 
 # ----------------------------------------------------------------------------------------------------------------------
 
 
-def get_data(model_file):
+def get_data(model_files):
     """ Recover information such as wavelength, flux and log(G) from the model file
     """
-    model_path, model_name = os.path.split(model_file)
-
     expected_log_gs = ['0.0', '0.5', '1.0', '1.5', '2.0', '2.5', '3.0', '3.5', '4.0', '4.5', '5.0', '5.5']
 
-    log_g = model_name[7:10]  # log_g value is given in the naming converntion
+    dfs = []
+    loggs = []
+    for model_file in model_files:
+        model_path, model_name = os.path.split(model_file)
 
-    if log_g not in expected_log_gs:
-        raise TypeError('Non-standard or mis-named file')
+        log_g = model_name[7:10]  # log_g value is given in the naming converntion
 
-    wavelength = np.array([], dtype='float64')
-    flux = np.array([], dtype='float64')
-    n_rows_limit = 500000  # Maximum number of rows allowed in conversion from model files to synphot fits file
-    with open(model_file) as m:
-        for i, line in enumerate(m):
-            if i + 1 < n_rows_limit:
-                row = line.split()
+        if log_g not in expected_log_gs:
+            raise TypeError('Non-standard or mis-named file')
+        else:
+            loggs.append(log_g)
 
-                # Columns in order: wavelenght, flux
-                wave = float(row[0].replace('D', 'E'))  # Given in scientific notation with a D instead of E
-                f = 10.0**float(row[1].replace('D', 'E')) * 1.0e-8  # convert to the correct units
+        print('Retrieving data for LogG = {}'.format(log_g))
 
-                # Break if wave[i] - wave[i-1] becomes negative
-                if i == 0:
-                    pass
-                elif i > 0:
-                    step = wave - wavelength[i-1]
-                    if step < 0:
-                        break
+        wave_flux_df = dask.delayed(pandas.read_table)(model_file, names=['wavelength', 'flux'], usecols=[0, 1],
+                                                       delim_whitespace=True)
+        dfs.append(wave_flux_df)
 
-                wavelength = np.append(wavelength, [wave])
-                flux = np.append(flux, [f])
+    with ProgressBar():
+        data_results = dask.compute(*dfs)
 
-    return log_g, wavelength, flux
+    log_g_dat, wavelength_dat, flux_dat = clean_data(data_results, loggs)
+
+    return log_g_dat, wavelength_dat, flux_dat
 
 # ----------------------------------------------------------------------------------------------------------------------
 
@@ -135,7 +141,6 @@ def create_synphot(wavelengths, wave_array, flux_array):
     """ From the wavelength and flux data obtained from the phoenix model files, build the column data for the
         primary HDU objects that will become the synphot files
     """
-
     spectrum = pysyn.ArraySpectrum(wave=wave_array, flux=flux_array, waveunits='angstroms', fluxunits='flam')
     simulated_flux = spectrum.sample(wavelengths)
 
@@ -173,40 +178,54 @@ def create_fits(hdu, outname, loggs, wave_band_array, syn_fluxes):
         header_keyword = log_names[logg][1]
 
         if not flux.any():
-            hdu.update(header_keyword, '-999')
+            hdu.header[header_keyword] = '-999'
         else:
-            hdu.update(header_keyword, logg)
+            hdu.header[header_keyword] = logg
 
         column = fits.Column(name=column_name, format='D', unit='FLAM', array=flux)
         columns.append(column)
 
     fits_columns = fits.ColDefs(columns)
-    table = fits.new_table(fits_columns)
-    hdulist = fits.HDUList([hdu])
-    hdulist.append(table)
+    table_hdu = fits.BinTableHDU.from_columns(fits_columns)
 
+    hdulist = fits.HDUList([hdu, table_hdu])
     hdulist.writeto(outname)
 
 # ----------------------------------------------------------------------------------------------------------------------
 
 
-def patch_logg(log_g_list, wavelengths_list, fluxes_list):
-    """ Fill in missing data with zeroes
+def clean_data(list_of_dataframes, log_g_list):
+    """ Convert data to floats and proper units, and Fill in missing data with zeroes
     """
+
+    wavelengths = []
+    fluxes = []
+    for df in list_of_dataframes:
+        df = df.apply(lambda x: pandas.Series(x).str.replace('D', 'E').astype(float))
+        df['flux'] = df['flux'].apply(lambda f: 1e-8 * 10**f)
+        df[df.flux == 1e-8] = 0.0
+        df = df[df.wavelength != 0]
+        df = df.sort_values('wavelength')
+
+        wavelengths.append(df['wavelength'].values)
+        fluxes.append(df['flux'].values)
+
+    # Fill missing data
     expected_loggs = ['0.0', '0.5', '1.0', '1.5', '2.0', '2.5', '3.0', '3.5', '4.0', '4.5', '5.0', '5.5']
 
     for lg in expected_loggs:
         if lg not in log_g_list:
+            print('{} Not found.. setting flux to 0')
             log_g_list.append(lg)
-            wavelengths_list.append(np.zeros_like(wavelengths_list[0]))
-            fluxes_list.append(np.zeros_like(fluxes_list[0]))
+            wavelengths.append(np.copy(wavelengths[0]))
+            fluxes.append(np.zeros_like(fluxes[0]))
 
-    return log_g_list, wavelengths_list, fluxes_list
+    return log_g_list, wavelengths, fluxes
 
 # ----------------------------------------------------------------------------------------------------------------------
 
 
-def make_synphot_files(phoenix_directory):
+def make_synphot_files(phoenix_directory, output_directory):
     """ Put everything together.. from the list of phoenix model files construct synphot fits files
     """
     files = find_models(phoenix_directory)
@@ -221,27 +240,20 @@ def make_synphot_files(phoenix_directory):
     for key, models in sorted_dictionary.items():
         hdu, output_filename = generate_fits(key)
 
-        waves = []
-        fluxes = []
-        log_gs = []
-        for model in models:
-            log_g, wave, flux = dask.delayed(get_data)(model)
+        out = os.path.join(output_directory, output_filename)
 
-            waves.append(wave)
-            fluxes.append(flux)
-            log_gs.append(log_g)
-
-        patched_loggs, patched_waves, patched_fluxes = dask.delayed(patch_logg)(log_gs, waves, fluxes)
-        lgs, wave_dat, flux_dat = dask.compute(patched_loggs, patched_waves, patched_fluxes)
+        log_gs, wavelength, flux = get_data(models)
 
         synphot_fluxes = []
-        for wave, flux in patched_waves, patched_fluxes:
+        for wave, flux in zip(wavelength, flux):
             syn_f = dask.delayed(create_synphot)(wavelengths, wave, flux)
             synphot_fluxes.append(syn_f)
 
-        synphot_results = dask.compute(*synphot_fluxes)
+        print('\nConverting to synphot data')
+        with ProgressBar():
+            synphot_results = dask.compute(*synphot_fluxes)
 
-        create_fits(hdu, output_filename, lgs, wavelengths, synphot_results)
+        create_fits(hdu, out, log_gs, wavelengths, synphot_results)
 
 # ----------------------------------------------------------------------------------------------------------------------
 
@@ -257,9 +269,15 @@ def convert_phoenix_to_synphot():
                         default=os.getcwd(),
                         help='Directory where the model files are located. Default is the current working directory')
 
+    parser.add_argument('--output_directory',
+                        '-o',
+                        action='store',
+                        default=os.getcwd(),
+                        help='Directory in which to place the output')
+
     args = parser.parse_args()
 
-    make_synphot_files(args.model_directory)
+    make_synphot_files(args.model_directory, args.output_directory)
 
 # ----------------------------------------------------------------------------------------------------------------------
 
