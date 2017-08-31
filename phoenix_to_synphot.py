@@ -14,9 +14,9 @@ import pandas
 
 def find_models(model_directory):
     """ Find all models in a given directory"""
-    print('\n\t==============')
-    print('\n\tFinding models')
-    print('\n\t==============')
+    print('\n==============')
+    print('\nFinding models')
+    print('\n==============')
 
     path = os.path.join(model_directory, 'lte*')
     models = glob.glob(path)
@@ -31,9 +31,9 @@ def sort_by_temp_metal(list_of_model_files):
     """ Given a list of models, sort them by temperature. The temperature is given as a part of the file naming
         convention
     """
-    print('\n\t============================================')
-    print('\n\tSorting files by Temperature and Metallicity')
-    print('\n\t============================================\n')
+    print('\n============================================')
+    print('\nSorting files by Temperature and Metallicity')
+    print('\n============================================\n')
     # Create a dictionary that will contain a list of files for each temperature keyword
     files_per_tempmetal = {}
 
@@ -62,9 +62,9 @@ def generate_fits(temperature_metallicity_key):
     """ Generate a fits file name and primary header based on the key generated in sort_by_temp_metal
     """
     temperature, metallicity = temperature_metallicity_key.split('_')[0], temperature_metallicity_key.split('_')[1]
-    print('\n\t=====================================================')
-    print('\n\tCreating new file for {}/{} temperature/metallicity'.format(temperature, metallicity))
-    print('\n\t=====================================================\n')
+    print('\n=====================================================')
+    print('\nCreating new file for {}/{} temperature/metallicity'.format(temperature, metallicity))
+    print('\n=====================================================\n')
 
     if int(temperature[0]) == 0:
         temperature = temperature[1:] + '00'
