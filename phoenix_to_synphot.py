@@ -215,7 +215,7 @@ def clean_data(list_of_dataframes, log_g_list):
 
     for lg in expected_loggs:
         if lg not in log_g_list:
-            print('{} Not found.. setting flux to 0')
+            print('{} data not found.. setting flux to 0'.format(lg))
             log_g_list.append(lg)
             wavelengths.append(np.copy(wavelengths[0]))
             fluxes.append(np.zeros_like(fluxes[0]))
@@ -237,8 +237,10 @@ def make_synphot_files(phoenix_directory, output_directory):
     red_band = np.logspace(5.456, 6.998, num=1000, endpoint=True, base=10.0)
     wavelengths = np.hstack((blue_band, green_band, red_band))
 
+    out_files = []
     for key, models in sorted_dictionary.items():
         hdu, output_filename = generate_fits(key)
+        out_files.append(output_filename)
 
         out = os.path.join(output_directory, output_filename)
 
@@ -254,6 +256,12 @@ def make_synphot_files(phoenix_directory, output_directory):
             synphot_results = dask.compute(*synphot_fluxes)
 
         create_fits(hdu, out, log_gs, wavelengths, synphot_results)
+
+    print('\n==============================')
+    print('Conversions complete. Results:')
+    print('==============================\n')
+    for f in out_files:
+        print(f)
 
 # ----------------------------------------------------------------------------------------------------------------------
 
