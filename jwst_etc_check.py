@@ -271,6 +271,12 @@ def move_to_pandeia(files, instrument, destination):
         if options.m: # Explicit control for replacing the files
             os.remove(old_file)
             shutil.copy(f,final_dir)
+            
+            move_code = 'python /grp/redcat/SCRIPTS/ReDCaT/move_files.py'
+            move_cmd = shlex.split(uniqname)
+
+            with subprocess.Popen(move_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE) as p:
+                out_dat, out_err = p.communicate()
 
 
 def update_json_file(config_file, files, destination, instrument):
