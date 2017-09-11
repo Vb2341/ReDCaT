@@ -140,11 +140,11 @@ def check_json_sections(json_files, instrument):
         statuses = []
         print('Checking {}'.format(f))
         with open(f) as json_data:
+            data = json.load(json_data)
             version = data['-delivered-for-version-']
             if version != template_version:
                 print('WARNING: Version of file submitted ({}) does not match template version ({})'.format(version, template_version))
                 statuses.append(False)
-            data = json.load(json_data)
             first_keys = ['meta', 'paths']
             for fk in first_keys:
                 section_name = fk
@@ -223,7 +223,9 @@ def find_old_file(filename, target_dir):
     ext = os.path.splitext(filename)
     filetype = '_'.join(filename.split('_')[:-1])
     matched = glob.glob('{}{}*'.format(target_dir,filetype))
-    assert len(matched) == 1, 'Too many or no files matched for {}'.format(filename)
+    if len(matched) != 1:
+        print('WARNING Too many or no files matched for {}'.format(filename))
+        return ''
     old_file = matched[0]
     full_path = os.path.abspath(old_file)
     return full_path
@@ -234,30 +236,39 @@ def move_to_pandeia(files, instrument, destination):
         the new one into its correct place.  THIS WILL BREAK IF THERE IS A NEW FILE
         ADDED DUE TO THE ASSERTION in find_old_file()
     '''
-    ext_to_dir = { # This dictionary maps the part of the filename to the directory
-                '_disp':'/dispersion/',
-                '_blaze':'/blaze/',
-                '_optical':'/optical/',
-                '_dich':'/optical/',
-                '_trans_modmean':'/optical/',
-                '_substrate_trans':'/optical/',
-                '_trans':'/filters/',
-                '_psf':'/psfs/',
-                '_r.':'/resolving_power/',
-                '_ldwave':'/wavecal/',
-                '_specef':'/blaze/',
-                '_ipc':'/detector/',
-                '_qe':'/qe/',
-                '_throughput':'/optical/',
-                '_telescope':'/',
-                '_configuration':'/',
-                '_shutters':'/',
-                '_internaloptics':'/optical/',
-                '_lyot':'/optical/',
-                '_substrate':'/optical/',
-                '_dbs_':'/optical/',
-                '_trace':'/wavepix/',
-                '_wl':'/optical/'}
+    # Take care when editing this dictionary, since the files are matched to their directory
+    # based on the presence the dictionaries keys in the filenames.  For instance, 'trans'
+    # would get matched to filters, but would return a positive match for a file containing
+    # the name 'trans_modmean'
+
+    # This dictionary maps the part of the filename to the directory
+    ext_to_dir = OrderedDict([
+                ('_disp', '/dispersion/'),
+                ('_blaze', '/blaze/'),
+                ('_optical', '/optical/'),
+                ('_dich', '/optical/'),
+                ('_ge_ar1_trans', '/optical/'),
+                ('_ge_ar2_trans', '/optical/'),
+                ('_trans_modmean', '/optical/'),
+                ('_substrate_trans', '/optical/'),
+                ('_trans', '/filters/'),
+                ('_psf', '/psfs/'),
+                ('_r.', '/resolving_power/'),
+                ('_ldwave', '/wavecal/'),
+                ('_specef', '/blaze/'),
+                ('_ipc', '/detector/'),
+                ('_qe', '/qe/'),
+                ('_throughput', '/optical/'),
+                ('_telescope', '/'),
+                ('_configuration', '/'),
+                ('_shutters', '/'),
+                ('_internaloptics', '/optical/'),
+                ('_lyot', '/optical/'),
+                ('_substrate', '/optical/'),
+                ('_dbs_', '/optical/'),
+                ('_trace', '/wavepix/'),
+                ('_wl', '/optical/')])
+
     new_to_old = {}
     for f in files:
         for ext in ext_to_dir.keys():
@@ -269,8 +280,10 @@ def move_to_pandeia(files, instrument, destination):
         new_to_old[f] = old_file
         print('Replacing {} with {}'.format(old_file,f))
         if options.m: # Explicit control for replacing the files
-            os.remove(old_file)
             shutil.copy(f,final_dir)
+            if old_file:
+                os.remove(old_file)
+
 
 
 def update_json_file(config_file, files, destination, instrument):
@@ -399,7 +412,7 @@ if __name__ == '__main__':
     print('--------------------------CHECK VALUES--------------------------')
     print('----------------------------------------------------------------')
     check_fits_files(fits_files)
-    check_json_sections(json_files)
+    check_json_sections(json_files, instrument)
 
     # !!Check to make sure all files passed, otherwise do not allow moving/updating
     print('----------------------------------------------------------------')
