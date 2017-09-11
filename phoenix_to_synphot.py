@@ -97,6 +97,33 @@ def generate_fits(temperature_metallicity_key):
     header['FLUXUNT'] = ('Flambda', 'erg/cm^2/s/Angstrom')
     header['COMMENT'] = '= Files translated to CDBS format by J. White'
 
+    header.add_history(" ")
+    header.add_history("Phoenix Models computed by France Allard")
+    header.add_history("These models use static, spherically symmetric, 1D simulations to")
+    header.add_history("completely describe the atmospheric emission spectrum. The")
+    header.add_history("models account for the formation of molecular bands such as")
+    header.add_history("those of water vapor, methane, or titanium oxide, solving")
+    header.add_history("for the transfer equation over more than 20000 wavelength")
+    header.add_history("points on average, producing synthetic spectra with 2 A reso-")
+    header.add_history("lution. The line selection is repeated at each iteration of")
+    header.add_history("the model. When the model is converged and the thermal struc-")
+    header.add_history("ture obtained. The models here are calculated with a cloud mo-")
+    header.add_history("del, valid across the entire parameter range. More information")
+    header.add_history("can  be found at http://perso.ens-lyon.fr/france.allard/ refe-")
+    header.add_history("rences: Allard et al. '03, Allard et al. '07, Allard et al. '09")
+    header.add_history("(http://perso.ens-lyon.fr/france.allard/) All these models can")
+    header.add_history("be found in the 'Star, Brown Dwarf & Planet Simulator'")
+    header.add_history("(http://phoenix.ens-lyon.fr/simulator/index.faces)")
+    header.add_history(" ")
+    header.add_history("These files were provided to the ReDCaT team by Aaron Dotter and")
+    header.add_history("Jason Kalirai.")
+    header.add_history(" ")
+    header.add_history("The wavelength range differs from the orginal in that it is a")
+    header.add_history("compilation of all the wavelength points for all the different")
+    header.add_history("log g models with the same metallicity and Teff. Once this grid")
+    header.add_history("is defined, the flux is subsampled using the numpy.sample ")
+    header.add_history("function.")
+
     pri_hdu = fits.PrimaryHDU(header=header)
 
     return pri_hdu, output_file
