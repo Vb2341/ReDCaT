@@ -1,3 +1,15 @@
+"""Tool for handling delivery of HST/JWST pipeline reference files
+Authors
+-------
+    - Varun Bajaj, James White July 2017
+Use
+---
+    This script is intended to be run from the comand line, and has optional arguments:
+    ::
+        python check_references.py
+"""
+
+
 import argparse
 import glob
 import os

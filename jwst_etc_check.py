@@ -438,3 +438,9 @@ if __name__ == '__main__':
     print('--------------------------MOVING FILES--------------------------')
     print('----------------------------------------------------------------')
     move_to_pandeia(files, instrument, destination)
+    if options.m:
+        move_code = 'python /grp/redcat/SCRIPTS/ReDCaT/move_files.py'
+        move_cmd = shlex.split(uniqname)
+
+        with subprocess.Popen(move_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE) as p:
+            out_dat, out_err = p.communicate()
