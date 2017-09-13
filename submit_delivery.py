@@ -1,6 +1,7 @@
 import os
 import smtplib
 from email.mime.text import MIMEText
+from deliver_files import parse_delivery_form
 from astropy.time import Time
 import sys
 import glob
@@ -10,6 +11,20 @@ import shutil
 instruments = {'hst': ['STIS', 'COS', 'ACS', 'WFC3', 'NICMOS', 'WFPC2'],
                'jwst': ['FGS', 'MIRI', 'NIRCAM', 'NIRISS', 'NIRSPEC']}
 
+# ======================================================================================================================
+
+
+def check_illegal_chars(description):
+    """Checks string (typically reason for delivery in the delivery form) for characters that would make CRDS error.
+    """
+    illegal_chars = ['!', '@', '#', '$', '%', '^', '&', '*', '(', ')', '?', '/', '\\', '|', '=', '+', '-', '_', '`',
+                    '~', '[', ']', '{', '}', '"', "'"]
+    valid_str = True
+    for char in illegal_chars:
+        if char in description:
+            print('Illegal character detected: {}'.format(char))
+            valid_str = False
+    return valid_str
 # ======================================================================================================================
 
 
@@ -26,7 +41,13 @@ def recover_info():
         raise TypeError('Must specify if the delivery is going to CRDS OPS, CRDS TEST or ETC')
 
     username = input('Email Username : ').lower().split('@')[0]
+
     subject = input('Subject of delivery request: ')
+
+    description = parse_delivery_form('delivery_form.txt')
+    all_good_chars = check_illegal_chars(description)
+    if not all_good_chars:
+        raise ValueError('Illegal characters in reason for delivery in delivery form, please remove and rerun tool.')
 
     # Today's date for constructing the delivery directory of INSTRUMENT_YYYY_MM_DD
     today = Time.now().datetime
@@ -83,7 +104,7 @@ def update_delivery_form(path_to_delivery_form, files_being_delivered, file_dest
     """
     form_path = os.path.split(path_to_delivery_form)[0]
     temp_file = os.path.join(form_path, 'temp.txt')
-    
+
     with open(temp_file, mode='w+', encoding='utf-8') as out, open(path_to_delivery_form, encoding='utf-8') as old:
         for line in old:
             if "16. Disk location and name of files:" in line:
