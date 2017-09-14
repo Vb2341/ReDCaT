@@ -18,7 +18,7 @@ def check_illegal_chars(description):
     """Checks string (typically reason for delivery in the delivery form) for characters that would make CRDS error.
     """
     illegal_chars = ['!', '@', '#', '$', '%', '^', '&', '*', '(', ')', '?', '/', '\\', '|', '=', '+', '-', '_', '`',
-                    '~', '[', ']', '{', '}', '"', "'"]
+                     '~', '[', ']', '{', '}', '"', "'"]
     valid_str = True
     for char in illegal_chars:
         if char in description:
@@ -32,6 +32,20 @@ def recover_info():
     """Gets information about the delivery in order to create a delivery directory
     """
     # Interactively acquire the instrument, ops/test destination, email username and subject to make things simple
+    replace = input(
+        'Is this a resubmission of a failed delivery (should this override a previous submission)? (y/n): ').lower()
+
+    if replace == 'y':
+        replace = True
+    elif replace == 'yes':
+        replace = True
+    elif replace == 'n':
+        replace = False
+    elif replace == 'no':
+        replace = False
+    else:
+        raise KeyError('Bad answer: {}\nPlease answer y (yes) or n (no)')
+
     instrument = input('Instrument: ').upper()
     if instrument not in instruments['hst'] and instrument not in instruments['jwst']:
         raise KeyError('INSTRUMENT DOES NOT EXIST\nor a typo may have occurred..\nplease try again')
@@ -52,7 +66,7 @@ def recover_info():
     # Today's date for constructing the delivery directory of INSTRUMENT_YYYY_MM_DD
     today = Time.now().datetime
 
-    return instrument, which_staging, username, today, subject
+    return replace, instrument, which_staging, username, today, subject
 
 # ======================================================================================================================
 
@@ -108,11 +122,16 @@ def update_delivery_form(path_to_delivery_form, files_being_delivered, file_dest
     with open(temp_file, mode='w+', encoding='utf-8') as out, open(path_to_delivery_form, encoding='utf-8') as old:
         for line in old:
             if "16. Disk location and name of files:" in line:
-                f_list = '{}\n'.format(file_destination)
+                if file_destination in line:
+                    line = line.split(':')[0]
+
+                f_list = '\n{}\n'.format(file_destination)
                 for f in files_being_delivered:
                     name = os.path.split(f)[-1]
                     f_list += '{}\n'.format(name)
+
                 line += f_list
+
             out.write(line)
 
     shutil.copy(temp_file, path_to_delivery_form)
@@ -120,7 +139,7 @@ def update_delivery_form(path_to_delivery_form, files_being_delivered, file_dest
 # ======================================================================================================================
 
 
-def send_to_staging(delivery_instrument, date, staging_location):
+def send_to_staging(delivery_instrument, date, staging_location, is_resubmit):
     """Given the instrument string and the current date, create a delivery directory in /grp/redcat/staging/[ops/test]/
     """
     staging_directory = '/grp/redcat/staging/'
@@ -135,6 +154,10 @@ def send_to_staging(delivery_instrument, date, staging_location):
     # Check to see if the destination alreading exists in the staging area
     pending_deliveries = os.listdir(staging_directory)
     if directory_name in pending_deliveries:
+
+        if is_resubmit:
+            shutil.rmtree(directory_name, ignore_errors=True)
+
         while (directory_name in pending_deliveries) is True:
             directory_pieces = directory_name.split('_')
 
@@ -181,9 +204,9 @@ def send_to_staging(delivery_instrument, date, staging_location):
 def submit_to_redcat():
     """Submit reference files to the ReDCaT Team
     """
-    instrument, ops_or_test, username, today, subject = recover_info()
+    resubmit_stat, instrument, staging, username, today, subject = recover_info()
 
-    send_to_staging(instrument, today, ops_or_test)
+    send_to_staging(instrument, today, staging, resubmit_stat)
 
     send_email(username, subject)
 
