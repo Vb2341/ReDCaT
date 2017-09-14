@@ -159,7 +159,7 @@ def verify_files(fits_files):
         print('Verifying {}'.format(f))
         with warnings.catch_warnings(record=True) as w:  # Workaround for astropy verify issues
             warnings.simplefilter("always")  # Catch all warnings
-            hdu = fits.open(f, mode='update')  # Catches the 'fixable violations'
+            hdu = fits.open(f, mode='update', checksum=True)  # Catches the 'fixable violations'
             hdu.verify('warn')  # Catches the unfixable ones
 
             if len(w) == 0:  # Check number of warnings, if =0 then file is good
