@@ -18,7 +18,7 @@ def check_illegal_chars(description):
     """Checks string (typically reason for delivery in the delivery form) for characters that would make CRDS error.
     """
     illegal_chars = ['!', '@', '#', '$', '%', '^', '&', '*', '(', ')', '?', '/', '\\', '|', '=', '+', '-', '_', '`',
-                    '~', '[', ']', '{', '}', '"', "'"]
+                     '~', '[', ']', '{', '}', '"', "'"]
     valid_str = True
     for char in illegal_chars:
         if char in description:
@@ -32,6 +32,16 @@ def recover_info():
     """Gets information about the delivery in order to create a delivery directory
     """
     # Interactively acquire the instrument, ops/test destination, email username and subject to make things simple
+    replace = input(
+        'Is this a resubmission of a failed delivery (should this override a previous submission)? (y/n): ').lower()
+
+    if replace == 'y' or replace == 'yes':
+        replace = True
+    elif replace == 'n' or replace == 'no':
+        replace = False
+    else:
+        raise KeyError('Bad answer: {}\nPlease answer y (yes) or n (no)')
+
     instrument = input('Instrument: ').upper()
     if instrument not in instruments['hst'] and instrument not in instruments['jwst']:
         raise KeyError('INSTRUMENT DOES NOT EXIST\nor a typo may have occurred..\nplease try again')
@@ -52,7 +62,7 @@ def recover_info():
     # Today's date for constructing the delivery directory of INSTRUMENT_YYYY_MM_DD
     today = Time.now().datetime
 
-    return instrument, which_staging, username, today, subject
+    return replace, instrument, which_staging, username, today, subject
 
 # ======================================================================================================================
 
@@ -112,66 +122,91 @@ def update_delivery_form(path_to_delivery_form, files_being_delivered, file_dest
                 for f in files_being_delivered:
                     name = os.path.split(f)[-1]
                     f_list += '{}\n'.format(name)
+
                 line += f_list
+
             out.write(line)
 
-    shutil.copy(temp_file, path_to_delivery_form)
+    return temp_file
 
 # ======================================================================================================================
 
 
-def send_to_staging(delivery_instrument, date, staging_location):
-    """Given the instrument string and the current date, create a delivery directory in /grp/redcat/staging/[ops/test]/
+def create_staging_directory(staging_path, date, instrument, resubmission):
+    """ Create the path to the staging directory for the delivery
     """
     staging_directory = '/grp/redcat/staging/'
-    staging_directory += '{}/'.format(staging_location)
+    staging_directory += '{}/'.format(staging_path)
 
     year = str(date.year)
     month = date_to_string(date.month)
     day = date_to_string(date.day)
 
-    directory_name = '{}_{}_{}_{}_0'.format(delivery_instrument, year, month, day)
+    directory_name = '{}_{}_{}_{}_0'.format(instrument, year, month, day)
 
     # Check to see if the destination alreading exists in the staging area
     pending_deliveries = os.listdir(staging_directory)
+
     if directory_name in pending_deliveries:
-        while (directory_name in pending_deliveries) is True:
-            directory_pieces = directory_name.split('_')
 
-            directory_name_core = '_'.join(directory_pieces[:-1])
-            delivery_number = int(directory_pieces[-1])
+        # If the delivery is supposed to replace a previous one, remove the old directory from the staging area
+        if resubmission:
+            shutil.rmtree(os.path.join(staging_directory, directory_name), ignore_errors=True)
 
-            delivery_number += 1
-
-            directory_name = directory_name_core + '_' + str(delivery_number)
+        else:
+            while (directory_name in pending_deliveries) is True:
+                directory_pieces = directory_name.split('_')
+                directory_name_core = '_'.join(directory_pieces[:-1])
+                delivery_number = int(directory_pieces[-1])
+                delivery_number += 1
+                directory_name = directory_name_core + '_' + str(delivery_number)
 
     destination = os.path.join(staging_directory, directory_name)
     print('\nDESTINATION: {}'.format(destination))
 
+    return destination
+
+# ======================================================================================================================
+
+
+def send_to_staging(delivery_instrument, date, staging_location, is_resubmit):
+    """Given the instrument string and the current date, create a delivery directory in /grp/redcat/staging/[ops/test]/
+    """
+    # Get the files
+    current_dr = os.getcwd()
+    files_to_deliver = []
+    for ftype in ['*fits', '*json', '*asdf']:
+        files_to_deliver += glob.glob(os.path.join(current_dr, ftype))
+
+    # Create the delivery directory
+    destination = create_staging_directory(staging_location, date, delivery_instrument, is_resubmit)
+
     os.mkdir(destination)
     os.chmod(destination, 0o777)
 
-    current_dr = os.getcwd()
-    fits_files = os.path.join(current_dr, '*fits')
-    json_files = os.path.join(current_dr, '*json')
-    asdf_files = os.path.join(current_dr, '*asdf')
-    delivery_form = os.path.join(current_dr, 'delivery_form.txt')
-
-    files_to_deliver = glob.glob(fits_files) + glob.glob(json_files) + glob.glob(asdf_files) + glob.glob(delivery_form)
     print('\nItems to be moved to staging area:\n')
     for f in files_to_deliver:
         print('\t{}'.format(f))
 
     print('\nUpdating delivery form... adding destination and filenames')
-    update_delivery_form(delivery_form, files_to_deliver, destination)
+    delivery_form = os.path.join(current_dr, 'delivery_form.txt')
+    updated = update_delivery_form(delivery_form, files_to_deliver, destination)
+    files_to_deliver.append(updated)
 
     print('\nMoving files...')
     for i, f in enumerate(files_to_deliver):
         print('{} out of {}'.format(i+1, len(files_to_deliver)))
-        shutil.copy(f, destination)
+
+        if 'temp' in f:
+            shutil.copy(f, os.path.join(destination, 'delivery_form.txt'))
+            os.remove(f)
+        else:
+            shutil.copy(f, destination)
 
         filename = os.path.split(f)[-1]  # isolate the filenames for use below
-        os.chmod(os.path.join(destination, filename), 0o777)  # os.chmod can only be used on one file at a time
+
+        if 'temp' not in f:
+            os.chmod(os.path.join(destination, filename), 0o777)  # os.chmod can only be used on one file at a time
 
     print('\nDone!')
 
@@ -181,9 +216,9 @@ def send_to_staging(delivery_instrument, date, staging_location):
 def submit_to_redcat():
     """Submit reference files to the ReDCaT Team
     """
-    instrument, ops_or_test, username, today, subject = recover_info()
+    resubmit_stat, instrument, staging, username, today, subject = recover_info()
 
-    send_to_staging(instrument, today, ops_or_test)
+    send_to_staging(instrument, today, staging, resubmit_stat)
 
     send_email(username, subject)
 
