@@ -35,13 +35,9 @@ def recover_info():
     replace = input(
         'Is this a resubmission of a failed delivery (should this override a previous submission)? (y/n): ').lower()
 
-    if replace == 'y':
+    if replace == 'y' or replace == 'yes':
         replace = True
-    elif replace == 'yes':
-        replace = True
-    elif replace == 'n':
-        replace = False
-    elif replace == 'no':
+    elif replace == 'n' or replace == 'no':
         replace = False
     else:
         raise KeyError('Bad answer: {}\nPlease answer y (yes) or n (no)')
