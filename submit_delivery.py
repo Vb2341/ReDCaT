@@ -17,8 +17,8 @@ instruments = {'hst': ['STIS', 'COS', 'ACS', 'WFC3', 'NICMOS', 'WFPC2'],
 def check_illegal_chars(description):
     """Checks string (typically reason for delivery in the delivery form) for characters that would make CRDS error.
     """
-    illegal_chars = ['!', '@', '#', '$', '%', '^', '&', '*', '(', ')', '?', '/', '\\', '|', '=', '+', '-', '_', '`',
-                     '~', '[', ']', '{', '}', '"', "'"]
+    illegal_chars = [':', '!', '@', '#', '$', '%', '^', '&', '*', '(', ')', '?', '/', '\\', '|', '=', '+', '-', '_',
+                     '`', '~', '[', ']', '{', '}', '"', "'"]
     valid_str = True
     for char in illegal_chars:
         if char in description:
@@ -167,7 +167,7 @@ def create_staging_directory(staging_path, date, instrument, resubmission):
 
     else:
         destination = os.path.join(staging_directory, directory_name)
-        
+
     print('\nDESTINATION: {}'.format(destination))
 
     return destination
@@ -203,14 +203,14 @@ def send_to_staging(delivery_instrument, date, staging_location, is_resubmit):
     for i, f in enumerate(files_to_deliver):
         print('{} out of {}'.format(i+1, len(files_to_deliver)))
 
-        if 'temp' in f:
+        if 'temp.txt' in f:
             shutil.copy(f, os.path.join(destination, 'delivery_form.txt'))
         else:
             shutil.copy(f, destination)
 
         filename = os.path.split(f)[-1]  # isolate the filenames for use below
 
-        if 'temp' not in f:
+        if 'temp.txt' not in f:
             os.chmod(os.path.join(destination, filename), 0o777)  # os.chmod can only be used on one file at a time
 
     print('\nDone!')
