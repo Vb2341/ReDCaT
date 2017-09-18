@@ -35,14 +35,16 @@ def rename_files(list_of_files):
     uniqname = 'crds uniqname --hst -s -a -r --files {}'.format(string_list_of_files)
     rename_cmd = shlex.split(uniqname)
 
-    with subprocess.Popen(rename_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE) as p:
-        out_dat, out_err = p.communicate()
+    with subprocess.Popen(rename_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE) as p, \
+            open('rename.log', mode='w+') as log:
 
-    print('{}\n{}'.format(out_dat.decode('utf-8'), out_err.decode('utf-8')))
-
-    # Document rename results in a log file
-    with open('rename.log', mode= 'w+') as log:
-        print('{}\n{}'.format(out_dat.decode('utf-8'), out_err.decode('utf-8')), file=log)
+        while p.poll() is None:
+            out = p.stderr.readline().decode('utf-8')
+            if out == '' and p.poll() is not None:
+                break
+            if out:
+                print(out)
+                print(out, file=log)  # Document rename results in a log file
 
     print('DONE. FILES RENAMED')
 
