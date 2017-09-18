@@ -96,13 +96,16 @@ def execute_delivery(staging_directory, ins_and_date):
     print('\n', deliver_cmd)
 
     # run crds submit
-    with subprocess.Popen(deliver_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE) as p:
-        out_dat, out_err = p.communicate()
+    with subprocess.Popen(deliver_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE) as p, \
+            open('delivery_results.log', mode='w+') as log:
 
-    print('{}\n{}'.format(out_dat.decode('utf-8'), out_err.decode('utf-8')))
-
-    with open('delivery_results.log', mode='w+') as log:
-        print('{}\n{}'.format(out_dat.decode('utf-8'), out_err.decode('utf-8')), file=log)
+        while p.poll() is None:
+            out = p.stderr.readline().decode('utf-8')
+            if out == '' and p.poll() is not None:
+                break
+            if out:
+                print(out)
+                print(out, file=log)  # Document rename results in a log file
 
     # Clean up the environment variables
     del os.environ['CRDS_PATH']

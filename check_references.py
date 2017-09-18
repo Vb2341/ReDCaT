@@ -234,13 +234,16 @@ if __name__ == '__main__':
     shell_cmd = shlex.split(certify_command)    # Split the commmand string into a subprocess-friendly list
     print(shell_cmd, '\n')                            # of "tokenized" arguments
 
-    # Open a subprocess and make sure to recover standard output and standard error
-    with subprocess.Popen(shell_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE) as p:
-        out_dat, out_err = p.communicate()    # the output of communicate is a tuple (stdout_data, stderr_data)
+    # Open a subprocess and recover the standard error, since that's what CRDS's output has ben defined as...
+    with subprocess.Popen(shell_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE) as p, \
+            open('certify_results.txt', mode='w+') as cert:
 
-    print('{}\n{}'.format(out_dat.decode('utf-8'), out_err.decode('utf-8')))
-
-    with open('certify_results.txt', mode='w+') as cert:
-        print('\n{}\n{}'.format(out_dat.decode('utf-8'), out_err.decode('utf-8')), file=cert)
+        while p.poll() is None:
+            out = p.stderr.readline().decode('utf-8')
+            if out == '' and p.poll() is not None:
+                break
+            if out:
+                print(out)
+                print(out, file=cert)  # Write the output to a file
 
     check_certify_results(files)
