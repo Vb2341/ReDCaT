@@ -159,14 +159,15 @@ def create_staging_directory(staging_path, date, instrument, resubmission):
             directory_name = directory_name_core + '_' + str(delivery_number)
             previous_name = directory_name_core + '_' + str(previous)
 
-        if resubmission:
-            shutil.rmtree(os.path.join(staging_directory, directory_name), ignore_errors=True)
-            shutil.rmtree(os.path.join(staging_directory, previous_name), ignore_errors=True)
+    if resubmission:
+        shutil.rmtree(os.path.join(staging_directory, directory_name), ignore_errors=True)
+        shutil.rmtree(os.path.join(staging_directory, previous_name), ignore_errors=True)
 
-            destination = os.path.join(staging_directory, previous_name)
-            
-        else:
-            destination = os.path.join(staging_directory, directory_name)
+        destination = os.path.join(staging_directory, previous_name)
+
+    else:
+        destination = os.path.join(staging_directory, directory_name)
+        
     print('\nDESTINATION: {}'.format(destination))
 
     return destination
