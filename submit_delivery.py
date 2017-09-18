@@ -150,18 +150,23 @@ def create_staging_directory(staging_path, date, instrument, resubmission):
     if directory_name in pending_deliveries:
 
         # If the delivery is supposed to replace a previous one, remove the old directory from the staging area
+        while (directory_name in pending_deliveries) is True:
+            directory_pieces = directory_name.split('_')
+            directory_name_core = '_'.join(directory_pieces[:-1])
+            delivery_number = int(directory_pieces[-1])
+            delivery_number += 1
+            previous = delivery_number - 1
+            directory_name = directory_name_core + '_' + str(delivery_number)
+            previous_name = directory_name_core + '_' + str(previous)
+
         if resubmission:
             shutil.rmtree(os.path.join(staging_directory, directory_name), ignore_errors=True)
+            shutil.rmtree(os.path.join(staging_directory, previous_name), ignore_errors=True)
 
+            destination = os.path.join(staging_directory, previous_name)
+            
         else:
-            while (directory_name in pending_deliveries) is True:
-                directory_pieces = directory_name.split('_')
-                directory_name_core = '_'.join(directory_pieces[:-1])
-                delivery_number = int(directory_pieces[-1])
-                delivery_number += 1
-                directory_name = directory_name_core + '_' + str(delivery_number)
-
-    destination = os.path.join(staging_directory, directory_name)
+            destination = os.path.join(staging_directory, directory_name)
     print('\nDESTINATION: {}'.format(destination))
 
     return destination
@@ -199,7 +204,6 @@ def send_to_staging(delivery_instrument, date, staging_location, is_resubmit):
 
         if 'temp' in f:
             shutil.copy(f, os.path.join(destination, 'delivery_form.txt'))
-            os.remove(f)
         else:
             shutil.copy(f, destination)
 
@@ -221,6 +225,8 @@ def submit_to_redcat():
     send_to_staging(instrument, today, staging, resubmit_stat)
 
     send_email(username, subject)
+
+    os.remove('temp.txt')
 
 # ======================================================================================================================
 
