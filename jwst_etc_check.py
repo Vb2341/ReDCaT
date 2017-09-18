@@ -84,7 +84,7 @@ def parse_args():
     return arguments
 # ----------------------------------------------------------------------------------------------------------------------
 
-def add_timestamps(files, local_time):
+def add_timestamps(files, local_time, instrument):
     new_filenames = []
     timestamp = time.strftime('%Y%m%d%H%M%S', local_time.timetuple())
     for f in files:
@@ -93,6 +93,9 @@ def add_timestamps(files, local_time):
         if all(c.isdigit() for c in last) and len(last) == 14:
             name = '_'.join(name.split('_')[:-1]) # To check if a timestamp is already there
         new_name = '{}_{}{}'.format(name,timestamp,extension)
+        if 'json' in extension:
+            if '_shutters' not in name and '_cr' not in name: # check to make sure its a configuration file
+                new_name = 'jwst_{}_configuration_{}.json'.format(instrument,timestamp)
         os.rename(f,new_name)
         new_filenames.append(new_name)
         print('Renaming {} to {}'.format(f, new_name))
@@ -419,7 +422,7 @@ if __name__ == '__main__':
     print('--------------------------RENAMING------------------------------')
     print('----------------------------------------------------------------')
     local_time = datetime.datetime.now()
-    files = add_timestamps(files, local_time)
+    files = add_timestamps(files, local_time, instrument)
 
 
     print('----------------------------------------------------------------')
