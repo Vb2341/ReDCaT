@@ -27,6 +27,7 @@ import warnings
 
 from astropy.io import fits
 from collections import OrderedDict
+from move_files import move_results
 
 # ----------------------------------------------------------------------------------------------------------------------
 
@@ -86,6 +87,7 @@ def parse_args():
 
 def add_timestamps(files, local_time, instrument):
     new_filenames = []
+    l = open('rename.log', 'w')  # log file containing renaming history
     timestamp = time.strftime('%Y%m%d%H%M%S', local_time.timetuple())
     for f in files:
         name, extension = os.path.splitext(f)
@@ -99,6 +101,8 @@ def add_timestamps(files, local_time, instrument):
         os.rename(f,new_name)
         new_filenames.append(new_name)
         print('Renaming {} to {}'.format(f, new_name))
+        l.write('{} ----> {}\n'.format(f, new_name))
+    l.close()
     return new_filenames
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -235,9 +239,8 @@ def find_old_file(filename, target_dir):
 
 def move_to_pandeia(files, instrument, destination):
     ''' This function figures out which subdirectory each of the delivered files
-        goes into, figures out the corresponding OLD file, deletes it, and moves
-        the new one into its correct place.  THIS WILL BREAK IF THERE IS A NEW FILE
-        ADDED DUE TO THE ASSERTION in find_old_file()
+        goes into, figures out the corresponding OLD file, deletes it (if one exists), 
+        and moves the new one into its correct place.
     '''
     # Take care when editing this dictionary, since the files are matched to their directory
     # based on the presence the dictionaries keys in the filenames.  For instance, 'trans'
@@ -273,6 +276,9 @@ def move_to_pandeia(files, instrument, destination):
                 ('_wl', '/optical/')])
 
     new_to_old = {}
+    l = open('replacement.log', 'w')
+    l.write('#REPLACEMENT ONLY PERFORMED IF -m FLAG IS GIVEN\n')
+    l.write('#However, this log is created regardless.\n')
     for f in files:
         for ext in ext_to_dir.keys():
             if ext in f:
@@ -282,11 +288,12 @@ def move_to_pandeia(files, instrument, destination):
         old_file = find_old_file(f,final_dir)
         new_to_old[f] = old_file
         print('Replacing {} with {}'.format(old_file,f))
+        l.write('Replacing {} with {} in {}\n'.format(old_file,f,final_dir))
         if options.m: # Explicit control for replacing the files
             shutil.copy(f,final_dir)
             if old_file:
                 os.remove(old_file)
-
+    l.close()
 
 
 def update_json_file(config_file, files, destination, instrument):
@@ -442,8 +449,7 @@ if __name__ == '__main__':
     print('----------------------------------------------------------------')
     move_to_pandeia(files, instrument, destination)
     if options.m:
-        move_code = 'python /grp/redcat/SCRIPTS/ReDCaT/move_files.py'
-        move_cmd = shlex.split(move_code)
-
-        with subprocess.Popen(move_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE) as p:
-            out_dat, out_err = p.communicate()
+        obs_instruments = {'hst': ['STIS', 'COS', 'ACS', 'WFC3', 'NICMOS', 'WFPC2'],
+               'jwst': ['FGS', 'MIRI', 'NIRCAM', 'NIRISS', 'NIRSPEC', 'TELESCOPE']}
+        delivery_directory = os.getcwd()
+        move_results(delivery_directory, obs_instruments)
