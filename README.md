@@ -9,7 +9,7 @@
 #### check_references.py ####
 
 **Purpose:** Checks references files intended for delivery to the CRDS system for compliance with CRDS standards and requirements\
-**Use:** `python check_references.py [<jwst>/<hst> -f <files> -c <context path>]`\
+**Use:** `python check_references.py [-f <files> -c <context path> <jwst>/<hst>]`\
 **Options/Arguments:**
 > ###### Options
 > 'o': manually specify the observatory for the files. Either 'jwst' or 'hst'
