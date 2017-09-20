@@ -66,6 +66,14 @@ def move_results(directory, obs_instruments):
         else:
             raise Exception(
                 'Unknown Instrument or Observatory/Delivery Area Incorrectly Formatted')
+    elif 'etc' in directory:
+        if instrument in obs_instruments['hst']:
+            destination = '/ifs/redcat/hst/srefpipe/ETC/'
+        elif instrument in obs_instruments['jwst']: # JWST ETC directories are lowercase on /ifs/redcat/ tree
+            destination = '/ifs/redcat/jwst/srefpipe/ETC/deliveries/{}/'.format(instrument.lower())
+        else:
+            raise Exception(
+                'Unknown Instrument or Observatory/Delivery Area Incorrectly Formatted')            
     else:
         raise Exception(
             'Cannot Identify Delivery Type/Delivery Is Not Located in Delivery Area')
