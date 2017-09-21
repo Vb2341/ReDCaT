@@ -71,7 +71,12 @@ def execute_delivery(staging_directory, ins_and_date):
     instrument = ins_and_date[0]
 
     # Get the "reason for delivery" from the delivery form
-    description = parse_delivery_form(os.path.join(staging_directory, 'delivery_form.txt'))
+    form_location = os.path.join(staging_directory, 'delivery_form.txt')
+    description = parse_delivery_form(form_location)
+    deliverer_name = get_deliverer_name(form_location)
+
+    # Add deliverer's name and instrument to the end of description
+    description = '{}   Delivered by {} for {}.'.format(description,deliverer_name,instrument)
 
     # Create a string-list of files that the command line can use
     files = glob.glob(os.path.join(staging_directory, '*fits*'))
@@ -148,6 +153,40 @@ def parse_delivery_form(form):
 
     print('\nReason for Delivery: {}'.format(final_description))
     return final_description
+
+# ----------------------------------------------------------------------------------------------------------------------
+
+def get_deliverer_name(form):
+    """ Find the deliverer's name in the delivery form to append to reason for delivery
+    """
+    # Open the form and read in the lines to a list
+    f = open(form, 'r')
+    lines = f.readlines()
+    f.close()
+
+    # Find the first line of the form containing the name of the deliverer
+    start = None
+    for i, line in enumerate(lines):
+        if 'Name of deliverer:' in line:
+            name_line = line
+            start = i
+    
+    name_sans_number = name_line.split('1. Name of deliverer:')[-1].strip('\n')
+    
+    # If the deliverer put their name on the next line, grab that
+    if not name_sans_number:
+        name_line = lines[start+1]
+        name_sans_number = name_line.strip()
+    
+    # Remove any illegal characters (some people only/also put the email address in line)
+        
+    illegal_chars = [':', '!', '@', '#', '$', '%', '^', '&', '*', '(', ')', '?', '/', '\\', '|', '=', '+', '-', '_',
+                     '`', '~', '[', ']', '{', '}', '"', "'"]
+    for char in illegal_chars:
+        name_sans_number = name_sans_number.replace(char, ' ')
+
+    print('\nDeliverer: {}'.format(name_sans_number))
+    return name_sans_number
 
 # ----------------------------------------------------------------------------------------------------------------------
 
